@@ -54,9 +54,10 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(process, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Error creating process' }, { status: 500 });
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
+
 
 /**
  * @swagger
@@ -78,6 +79,6 @@ export async function GET() {
     const processes = await prisma.process.findMany();
     return NextResponse.json(processes);
   } catch (error) {
-    return NextResponse.json({ error: 'Error fetching processes' }, { status: 500 });
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }

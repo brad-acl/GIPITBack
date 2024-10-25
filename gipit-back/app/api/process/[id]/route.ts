@@ -39,9 +39,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(process);
   } catch (error) {
-    return NextResponse.json({ error: 'Error obteniendo el proceso' }, { status: 500 });
+    
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
+
 
 /**
  * @swagger
@@ -104,12 +106,19 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     });
 
     return NextResponse.json(updatedProcess);
-  } catch (error) {
-    if (error.code === 'P2025') {
-      return NextResponse.json({ error: 'Proceso no encontrado' }, { status: 404 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+        if (error.message.includes('404')) {
+            console.error("no encontrado (404):", error.message);
+        } else if (error.message.includes('500')) {
+            console.error("error de servidor (500):", error.message);
+        } else {
+            console.error("un error ha ocurrido:", error.message);
+        }
+    } else {
+        console.error("un error desconocido ha ocurrido");
     }
-    return NextResponse.json({ error: 'Error actualizando el proceso' }, { status: 500 });
-  }
+}
 }
 
 /**
@@ -140,10 +149,17 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     });
 
     return NextResponse.json({ message: 'Proceso eliminado con éxito' });
-  } catch (error) {
-    if (error.code === 'P2025') {
-      return NextResponse.json({ error: 'Proceso no encontrado' }, { status: 404 });
-    }
-    return NextResponse.json({ error: 'Error eliminando el proceso' }, { status: 500 });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+          if (error.message.includes('404')) {
+              console.error("no encontrado (404):", error.message);
+          } else if (error.message.includes('500')) {
+              console.error("error de servidor (500):", error.message);
+          } else {
+              console.error("un error ha ocurrido:", error.message);
+          }
+      } else {
+          console.error("un error desconocido ha ocurrido");
+      }
   }
 }

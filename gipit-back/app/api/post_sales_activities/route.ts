@@ -55,7 +55,8 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(postSalesActivity, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Error creating sales activity' }, { status: 500 });
+    
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
 
@@ -79,6 +80,6 @@ export async function GET() {
     const postSalesActivities = await prisma.post_sales_activities.findMany();
     return NextResponse.json(postSalesActivities);
   } catch (error) {
-    return NextResponse.json({ error: 'Error fetching sales activities' }, { status: 500 });
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }

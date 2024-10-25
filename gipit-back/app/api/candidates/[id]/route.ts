@@ -39,7 +39,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(candidate);
   } catch (error) {
-    return NextResponse.json({ error: 'Error obteniendo el candidato' }, { status: 500 });
+    
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
 
@@ -78,7 +79,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(updatedCandidate);
   } catch (error) {
-    return NextResponse.json({ error: 'Error actualizando el candidato' }, { status: 500 });
+    
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
 
@@ -109,6 +111,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     return NextResponse.json({ message: 'Candidato eliminado con éxito' });
   } catch (error) {
-    return NextResponse.json({ error: 'Error eliminando el candidato' }, { status: 500 });
+    
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }

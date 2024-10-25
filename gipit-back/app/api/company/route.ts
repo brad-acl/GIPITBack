@@ -26,7 +26,7 @@ export async function GET() {
     return NextResponse.json(managements);
   } catch (error) {
     
-    return NextResponse.json({ error: `Error fetching managements - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
 
@@ -57,6 +57,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(company, { status: 201 });
   } catch (error) {
     
-    return NextResponse.json({ error: `Error creating company- ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }

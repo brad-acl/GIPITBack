@@ -46,7 +46,8 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(candidate, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Error creating candidate' }, { status: 500 });
+    
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
 
@@ -70,6 +71,7 @@ export async function GET() {
     const candidates = await prisma.candidates.findMany();
     return NextResponse.json(candidates);
   } catch (error) {
-    return NextResponse.json({ error: 'Error fetching candidates' }, { status: 500 });
+    
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }

@@ -39,7 +39,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(candidateManagement);
   } catch (error) {
-    return NextResponse.json({ error: 'Error obteniendo el registro de gestión de candidato' }, { status: 500 });
+    
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
 
@@ -85,7 +86,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(updatedCandidateManagement);
   } catch (error) {
-    return NextResponse.json({ error: 'Error actualizando el registro de gestión de candidato' }, { status: 500 });
+    
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
 
@@ -116,6 +118,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     return NextResponse.json({ message: 'Registro de gestión de candidato eliminado con éxito' });
   } catch (error) {
-    return NextResponse.json({ error: 'Error eliminando el registro de gestión de candidato' }, { status: 500 });
+    
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }

@@ -39,9 +39,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(postSalesActivity);
   } catch (error) {
-    return NextResponse.json({ error: 'Error obteniendo la actividad de ventas' }, { status: 500 });
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
+
 
 /**
  * @swagger
@@ -85,9 +86,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(updatedPostSalesActivity);
   } catch (error) {
-    return NextResponse.json({ error: 'Error actualizando la actividad de ventas' }, { status: 500 });
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
+
 
 /**
  * @swagger
@@ -116,6 +118,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     return NextResponse.json({ message: 'Actividad de ventas eliminada con éxito' });
   } catch (error) {
-    return NextResponse.json({ error: 'Error eliminando la actividad de ventas' }, { status: 500 });
+    
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
