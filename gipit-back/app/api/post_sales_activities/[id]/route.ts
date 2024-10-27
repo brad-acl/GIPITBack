@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '../../middleware';
 
 const prisma = new PrismaClient();
 
@@ -27,23 +26,20 @@ const prisma = new PrismaClient();
  *         description: Actividad de ventas no encontrada
  */
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const tokenValidation = verifyToken(req);
-  if (tokenValidation instanceof NextResponse) return tokenValidation; // Return error if token is invalid
-
   const { id } = params;
 
   try {
-      const postSalesActivity = await prisma.post_sales_activities.findUnique({
-          where: { id: parseInt(id) },
-      });
+    const postSalesActivity = await prisma.post_sales_activities.findUnique({
+      where: { id: parseInt(id) },
+    });
 
-      if (!postSalesActivity) {
-          return NextResponse.json({ error: 'Actividad de ventas no encontrada' }, { status: 404 });
-      }
+    if (!postSalesActivity) {
+      return NextResponse.json({ error: 'Actividad de ventas no encontrada' }, { status: 404 });
+    }
 
-      return NextResponse.json(postSalesActivity);
+    return NextResponse.json(postSalesActivity);
   } catch (error) {
-      return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
 
@@ -71,31 +67,26 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
  *       500:
  *         description: Error al actualizar la actividad de ventas
  */
-
-
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const tokenValidation = verifyToken(req);
-  if (tokenValidation instanceof NextResponse) return tokenValidation; // Return error if token is invalid
-
   const { id } = params;
   const { candidate_management_id, benefit, description, date, associated_cost } = await req.json();
 
   try {
-      const updatedPostSalesActivity = await prisma.post_sales_activities.update({
-          where: { id: parseInt(id) },
-          data: {
-              candidate_management_id,
-              benefit,
-              description,
-              date,
-              associated_cost,
-              updated_at: new Date(), // Automatically update the timestamp
-          },
-      });
+    const updatedPostSalesActivity = await prisma.post_sales_activities.update({
+      where: { id: parseInt(id) },
+      data: {
+        candidate_management_id,
+        benefit,
+        description,
+        date,
+        associated_cost,
+        updated_at: new Date(), // Automatically update the timestamp
+      },
+    });
 
-      return NextResponse.json(updatedPostSalesActivity);
+    return NextResponse.json(updatedPostSalesActivity);
   } catch (error) {
-      return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
 
@@ -117,21 +108,17 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
  *       500:
  *         description: Error al eliminar la actividad de ventas
  */
-
-
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const tokenValidation = verifyToken(req);
-  if (tokenValidation instanceof NextResponse) return tokenValidation; // Return error if token is invalid
-
   const { id } = params;
 
   try {
-      await prisma.post_sales_activities.delete({
-          where: { id: parseInt(id) },
-      });
+    await prisma.post_sales_activities.delete({
+      where: { id: parseInt(id) },
+    });
 
-      return NextResponse.json({ message: 'Actividad de ventas eliminada con éxito' });
+    return NextResponse.json({ message: 'Actividad de ventas eliminada con éxito' });
   } catch (error) {
-      return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
+    
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
