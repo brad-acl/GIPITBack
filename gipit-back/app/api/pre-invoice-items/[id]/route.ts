@@ -25,7 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(preInvoiceItem);
   } catch (error) {
-    return NextResponse.json({ error: 'Error fetching pre-invoice item' }, { status: 500 });
+    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
   }
 }
 
@@ -55,7 +55,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(preInvoiceItem);
   } catch (error) {
-    return NextResponse.json({ error: 'Error updating pre-invoice item' }, { status: 500 });
+    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
   }
 }
 
@@ -75,6 +75,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     return NextResponse.json({ message: 'Pre-invoice item deleted successfully' });
   } catch (error) {
-    return NextResponse.json({ error: 'Error deleting pre-invoice item' }, { status: 500 });
+    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
   }
 }
