@@ -1,7 +1,37 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyToken } from '../middleware'; 
 
 const prisma = new PrismaClient();
+
+/**
+ * @swagger
+ * /candidate_management:
+ *   get:
+ *     summary: Obtener todos los registros de gestión de candidatos
+ *     responses:
+ *       200:
+ *         description: Lista de registros de gestión de candidatos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/CandidateManagement'
+ */
+export async function GET(req: NextRequest) {
+  try {
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
+    const candidateManagementRecords = await prisma.candidate_management.findMany();
+    return NextResponse.json(candidateManagementRecords);
+  } catch (error) {
+    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
+  }
+}
 
 /**
  * @swagger
@@ -37,6 +67,12 @@ export async function POST(req: NextRequest) {
   const { candidate_id, management_id, status, start_date, end_date } = await req.json();
 
   try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     const candidateManagement = await prisma.candidate_management.create({
       data: {
         candidate_id,
@@ -48,30 +84,6 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(candidateManagement, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Error creating candidate management record' }, { status: 500 });
-  }
-}
-
-/**
- * @swagger
- * /candidate_management:
- *   get:
- *     summary: Obtener todos los registros de gestión de candidatos
- *     responses:
- *       200:
- *         description: Lista de registros de gestión de candidatos
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/CandidateManagement'
- */
-export async function GET() {
-  try {
-    const candidateManagementRecords = await prisma.candidate_management.findMany();
-    return NextResponse.json(candidateManagementRecords);
-  } catch (error) {
-    return NextResponse.json({ error: 'Error fetching candidate management records' }, { status: 500 });
+    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
   }
 }

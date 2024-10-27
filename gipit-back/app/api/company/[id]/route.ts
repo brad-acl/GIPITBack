@@ -1,8 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-
-
+import { verifyToken } from '../../middleware'; 
 const prisma = new PrismaClient();
+
 /**
  * @swagger
  * /company/{id}:
@@ -29,6 +29,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { id } = params;
 
   try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     const company = await prisma.company.findUnique({
       where: { id: parseInt(id) },
     });
@@ -39,8 +45,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(company);
   } catch (error) {
-    console.log(error)
-    return NextResponse.json({ error: `Error obteniendo la compañía- ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error obteniendo la compañía - ${error}` }, { status: 500 });
   }
 }
 
@@ -68,23 +73,28 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
  *         description: Error al actualizar la compañía
  */
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-    const { id } = params;
-    const { name, logo, description } = await req.json();
-    
-    try {
-      const updatedCompany = await prisma.company.update({
-        where: { id: parseInt(id) },
-        data: { name, logo, description },
-      });
-  
-      return NextResponse.json(updatedCompany);
-    } catch (error) {
-      
-      return NextResponse.json({ error: `Error actualizando la compañía - ${error}`, }, { status: 500 });
-    }
-  }
+  const { id } = params;
+  const { name, logo, description } = await req.json();
 
-  /**
+  try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
+    const updatedCompany = await prisma.company.update({
+      where: { id: parseInt(id) },
+      data: { name, logo, description },
+    });
+
+    return NextResponse.json(updatedCompany);
+  } catch (error) {
+    return NextResponse.json({ error: `Error actualizando la compañía - ${error}` }, { status: 500 });
+  }
+}
+
+/**
  * @swagger
  * /company/{id}:
  *   delete:
@@ -101,16 +111,22 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
  *       500:
  *         description: Error al eliminar la compañía
  */
-  export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-    const { id } = params;
-    
-    try {
-      await prisma.company.delete({
-        where: { id: parseInt(id) },
-      });
-  
-      return NextResponse.json({ message: 'Compañía eliminada con éxito' });
-    } catch (error) {
-      return NextResponse.json({ error: `Error eliminando la compañía- ${error}` }, { status: 500 });
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params;
+
+  try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
     }
+
+    await prisma.company.delete({
+      where: { id: parseInt(id) },
+    });
+
+    return NextResponse.json({ message: 'Compañía eliminada con éxito' });
+  } catch (error) {
+    return NextResponse.json({ error: `Error eliminando la compañía - ${error}` }, { status: 500 });
   }
+}

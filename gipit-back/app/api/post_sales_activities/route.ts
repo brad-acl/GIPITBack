@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyToken } from '../middleware'; 
 
 const prisma = new PrismaClient();
 
@@ -39,9 +40,15 @@ const prisma = new PrismaClient();
  *         description: Error al crear la actividad de ventas
  */
 export async function POST(req: NextRequest) {
-  const { candidate_management_id, benefit, description, date, associated_cost } = await req.json();
-  
   try {
+    const verificationResult = verifyToken(req);
+
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
+    const { candidate_management_id, benefit, description, date, associated_cost } = await req.json();
+  
     const postSalesActivity = await prisma.post_sales_activities.create({
       data: {
         candidate_management_id,
@@ -49,13 +56,13 @@ export async function POST(req: NextRequest) {
         description,
         date,
         associated_cost,
-        created_at: new Date(), // Automatically set current time
-        updated_at: new Date(), // Automatically set current time
+        created_at: new Date(), 
+        updated_at: new Date(), 
       },
     });
     return NextResponse.json(postSalesActivity, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Error creating sales activity' }, { status: 500 });
+    return NextResponse.json({ error: `Error creating post sales activity - ${error}` }, { status: 500 });
   }
 }
 
@@ -72,13 +79,19 @@ export async function POST(req: NextRequest) {
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/PostSalesActivity' // Update this reference if needed
+ *                 $ref: '#/components/schemas/PostSalesActivity' 
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const verificationResult = verifyToken(req);
+
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     const postSalesActivities = await prisma.post_sales_activities.findMany();
     return NextResponse.json(postSalesActivities);
   } catch (error) {
-    return NextResponse.json({ error: 'Error fetching sales activities' }, { status: 500 });
+    return NextResponse.json({ error: `Error fetching post sales activities - ${error}` }, { status: 500 });
   }
 }

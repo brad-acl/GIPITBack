@@ -1,10 +1,10 @@
-
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyToken } from '../middleware'; 
 
 const prisma = new PrismaClient();
 
-// Obtener todas las jefaturas (GET)
+// Obtener todas las compañías (GET)
 /**
  * @swagger
  * /company:
@@ -20,17 +20,22 @@ const prisma = new PrismaClient();
  *               items:
  *                 $ref: '#/components/schemas/Company'
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const managements = await prisma.company.findMany();
-    return NextResponse.json(managements);
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
+    const companies = await prisma.company.findMany();
+    return NextResponse.json(companies);
   } catch (error) {
-    
-    return NextResponse.json({ error: `Error fetching managements - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
   }
 }
 
-// Crear una nueva jefatura (POST)
+// Crear una nueva compañía (POST)
 /**
  * @swagger
  * /company:
@@ -49,14 +54,20 @@ export async function GET() {
  *         description: Error al crear la compañía
  */
 export async function POST(req: NextRequest) {
-  const {  name, description } = await req.json();
+  const { name, description } = await req.json();
+  
   try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     const company = await prisma.company.create({
       data: { name, description },
     });
     return NextResponse.json(company, { status: 201 });
   } catch (error) {
-    
-    return NextResponse.json({ error: `Error creating company- ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
   }
 }

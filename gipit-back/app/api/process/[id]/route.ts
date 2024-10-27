@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyToken } from '../../middleware'; 
 
 const prisma = new PrismaClient();
 
@@ -29,6 +30,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { id } = params;
 
   try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     const process = await prisma.process.findUnique({
       where: { id: parseInt(id) },
     });
@@ -39,7 +46,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(process);
   } catch (error) {
-    return NextResponse.json({ error: 'Error obteniendo el proceso' }, { status: 500 });
+    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
 
@@ -90,6 +97,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const { job_offer, job_offer_description, company_id, opened_at, closed_at, pre_filtered, status } = await req.json();
 
   try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     const updatedProcess = await prisma.process.update({
       where: { id: parseInt(id) },
       data: {
@@ -105,10 +118,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(updatedProcess);
   } catch (error) {
-    if (error.code === 'P2025') {
-      return NextResponse.json({ error: 'Proceso no encontrado' }, { status: 404 });
-    }
-    return NextResponse.json({ error: 'Error actualizando el proceso' }, { status: 500 });
+    console.error("Error al actualizar el proceso:", error);
+    return NextResponse.json({ error: `Error actualizando el proceso - ${error}` }, { status: 500 });
   }
 }
 
@@ -135,15 +146,19 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const { id } = params;
 
   try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     await prisma.process.delete({
       where: { id: parseInt(id) },
     });
 
     return NextResponse.json({ message: 'Proceso eliminado con éxito' });
   } catch (error) {
-    if (error.code === 'P2025') {
-      return NextResponse.json({ error: 'Proceso no encontrado' }, { status: 404 });
-    }
-    return NextResponse.json({ error: 'Error eliminando el proceso' }, { status: 500 });
+    console.error("Error al eliminar el proceso:", error);
+    return NextResponse.json({ error: `Error eliminando el proceso - ${error}` }, { status: 500 });
   }
 }
