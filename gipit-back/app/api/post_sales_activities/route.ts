@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '../middleware'; 
+
 const prisma = new PrismaClient();
 
 /**
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(postSalesActivity, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error creating post sales activity - ${error}` }, { status: 500 });
   }
 }
 
@@ -91,6 +92,6 @@ export async function GET(req: NextRequest) {
     const postSalesActivities = await prisma.post_sales_activities.findMany();
     return NextResponse.json(postSalesActivities);
   } catch (error) {
-    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error fetching post sales activities - ${error}` }, { status: 500 });
   }
 }

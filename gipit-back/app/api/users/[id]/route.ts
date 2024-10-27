@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { verifyToken } from '../../middleware';
 
 const prisma = new PrismaClient();
+
 /**
  * @swagger
  * /users/{id}:
@@ -24,10 +26,16 @@ const prisma = new PrismaClient();
  *       404:
  *         description: Usuario no encontrado
  */
-
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
     const { id } = params;
+
     try {
+
+        const verificationResult = verifyToken(req);
+        if (!verificationResult.valid) {
+            return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+        }
+
         const user = await prisma.users.findUnique({
             where: { id: parseInt(id) },
         });
@@ -64,7 +72,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
     const { id } = params;
     const { name, email, role, avatar } = await req.json();
+
     try {
+
+        const verificationResult = verifyToken(req);
+        if (!verificationResult.valid) {
+            return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+        }
+
         const updatedUser = await prisma.users.update({
             where: { id: parseInt(id) },
             data: { name, email, role, avatar },
@@ -94,12 +109,19 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
  */
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
     const { id } = params;
+
     try {
+
+        const verificationResult = verifyToken(req);
+        if (!verificationResult.valid) {
+            return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+        }
+
         await prisma.users.delete({
             where: { id: parseInt(id) },
         });
         return NextResponse.json({ message: 'User deleted' }, { status: 200 });
     } catch (error) {
-        return NextResponse.json({ error: `Error deleting user- ${error}` }, { status: 500 });
+        return NextResponse.json({ error: `Error deleting user - ${error}` }, { status: 500 });
     }
 }

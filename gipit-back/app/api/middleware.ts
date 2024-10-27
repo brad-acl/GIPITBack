@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { jwtSecret } from '../api/config/config';
 
@@ -26,6 +26,7 @@ export const verifyToken = (req: NextRequest): TokenVerificationResult => {
     const decoded = jwt.verify(token, jwtSecret);
     return { valid: true, decoded }; // Return success
   } catch (err) {
+    console.error(err); // Log the error
     return { valid: false, error: 'Failed to authenticate token.' }; // Return error
   }
-};
+}  

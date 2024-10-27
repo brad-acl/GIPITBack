@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyToken } from '../../middleware'; 
 
 const prisma = new PrismaClient();
 
@@ -29,6 +30,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { id } = params;
 
   try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     const candidateManagement = await prisma.candidate_management.findUnique({
       where: { id: parseInt(id) },
     });
@@ -39,7 +46,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(candidateManagement);
   } catch (error) {
-    
     return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
@@ -72,6 +78,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const { candidate_id, management_id, status, start_date, end_date } = await req.json();
 
   try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     const updatedCandidateManagement = await prisma.candidate_management.update({
       where: { id: parseInt(id) },
       data: {
@@ -86,7 +98,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(updatedCandidateManagement);
   } catch (error) {
-    
     return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
@@ -112,13 +123,18 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const { id } = params;
 
   try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     await prisma.candidate_management.delete({
       where: { id: parseInt(id) },
     });
 
     return NextResponse.json({ message: 'Registro de gestión de candidato eliminado con éxito' });
   } catch (error) {
-    
     return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }

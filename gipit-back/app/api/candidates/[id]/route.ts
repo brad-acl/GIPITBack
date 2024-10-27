@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyToken } from '../../middleware'; 
 
 const prisma = new PrismaClient();
 
@@ -29,6 +30,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { id } = params;
 
   try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     const candidate = await prisma.candidates.findUnique({
       where: { id: parseInt(id) },
     });
@@ -39,7 +46,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(candidate);
   } catch (error) {
-    
     return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
@@ -72,6 +78,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const { name, phone, email, address, jsongpt_text } = await req.json();
 
   try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     const updatedCandidate = await prisma.candidates.update({
       where: { id: parseInt(id) },
       data: { name, phone, email, address, jsongpt_text },
@@ -79,7 +91,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(updatedCandidate);
   } catch (error) {
-    
     return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
@@ -105,13 +116,18 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const { id } = params;
 
   try {
+
+    const verificationResult = verifyToken(req);
+    if (!verificationResult.valid) {
+      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+    }
+
     await prisma.candidates.delete({
       where: { id: parseInt(id) },
     });
 
     return NextResponse.json({ message: 'Candidato eliminado con éxito' });
   } catch (error) {
-    
     return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
