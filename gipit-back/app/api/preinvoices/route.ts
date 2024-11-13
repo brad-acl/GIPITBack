@@ -25,11 +25,7 @@ nextMonthDate.setMonth(currentDate.getMonth() + 1);
 
 export async function POST(req: NextRequest) {
   try {
-    const verificationResult = verifyToken(req);
 
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
 
     const { total_value, description, status } = await req.json();
     const preInvoice = await prisma.pre_invoices.create({

@@ -10,10 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+    
 
     const preInvoice = await prisma.pre_invoices.findUnique({
       where: { id: Number(id) },
@@ -35,10 +32,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+    
 
     const preInvoice = await prisma.pre_invoices.update({
       where: { id: Number(id) },
@@ -62,10 +56,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+    
 
     await prisma.pre_invoices.delete({
       where: { id: Number(id) },
