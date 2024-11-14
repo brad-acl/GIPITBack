@@ -4,68 +4,51 @@ import { verifyToken } from '../../middleware';
 
 const prisma = new PrismaClient();
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
-
   try {
-
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
-
     const userManagement = await prisma.users_management.findUnique({
       where: { id: parseInt(id) },
     });
-    
-    if (!userManagement) {
-      return NextResponse.json({ error: 'Relation not found' }, { status: 404 });
-    }
-
+    if (!userManagement) return NextResponse.json({ error: "User management not found" }, { status: 404 });
     return NextResponse.json(userManagement, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching relation - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error fetching user management: ${error}` }, { status: 500 });
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+
+export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
-  const { user_id, management_id } = await req.json();
-
   try {
+    const data = await req.json();
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+    
+    const filteredData = {
+      user_id: data.user_id,
+      management_id: data.management_id,
+    };
 
-    const updatedRelation = await prisma.users_management.update({
+    const updatedUserManagement = await prisma.users_management.update({
       where: { id: parseInt(id) },
-      data: { user_id, management_id },
+      data: filteredData,
     });
 
-    return NextResponse.json(updatedRelation, { status: 200 });
+    return NextResponse.json(updatedUserManagement, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: `Error updating relation - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error updating user management: ${error}` }, { status: 500 });
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
-
   try {
-
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
-
     await prisma.users_management.delete({
       where: { id: parseInt(id) },
     });
-
-    return NextResponse.json({ message: 'Relation deleted' }, { status: 200 });
+    return NextResponse.json({ message: "User management deleted successfully" }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: `Error deleting relation - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error deleting user management: ${error}` }, { status: 500 });
   }
 }
