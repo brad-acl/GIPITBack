@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
+
 const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-
+    
 
     const preInvoices = await prisma.pre_invoices.findMany();
     return NextResponse.json(preInvoices);

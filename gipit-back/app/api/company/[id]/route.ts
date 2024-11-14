@@ -1,122 +1,54 @@
 import { PrismaClient } from '@prisma/client';
-import { NextRequest, NextResponse } from 'next/server';
+import {  NextResponse } from 'next/server';
+
 const prisma = new PrismaClient();
 
-/**
- * @swagger
- * /company/{id}:
- *   get:
- *     summary: Obtener una compañía por ID
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID de la compañía
- *     responses:
- *       200:
- *         description: Información de la compañía
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Company'
- *       404:
- *         description: Compañía no encontrada
- */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
-
   try {
-
-
-
     const company = await prisma.company.findUnique({
       where: { id: parseInt(id) },
     });
-
-    if (!company) {
-      return NextResponse.json({ error: 'Compañía no encontrada' }, { status: 404 });
-    }
-
-    return NextResponse.json(company);
+    if (!company) return NextResponse.json({ error: "Company not found" }, { status: 404 });
+    return NextResponse.json(company, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: `Error obteniendo la compañía - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error fetching company: ${error}` }, { status: 500 });
   }
 }
 
-/**
- * @swagger
- * /company/{id}:
- *   put:
- *     summary: Actualizar una compañía
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Company'
- *     responses:
- *       200:
- *         description: Compañía actualizada correctamente
- *       500:
- *         description: Error al actualizar la compañía
- */
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+// PUT: Actualizar una compañía por ID
+export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
-  const { name, logo, description } = await req.json();
-
   try {
+    const data = await req.json();
 
-
+    // Filtrar los datos para incluir solo los campos válidos
+    const filteredData = {
+      name: data.name,
+      logo: data.logo,
+      description: data.description,
+    };
 
     const updatedCompany = await prisma.company.update({
       where: { id: parseInt(id) },
-      data: { name, logo, description },
+      data: filteredData,
     });
 
-    return NextResponse.json(updatedCompany);
+    return NextResponse.json(updatedCompany, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: `Error actualizando la compañía - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error updating company: ${error}` }, { status: 500 });
   }
 }
 
-/**
- * @swagger
- * /company/{id}:
- *   delete:
- *     summary: Eliminar una compañía
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Compañía eliminada correctamente
- *       500:
- *         description: Error al eliminar la compañía
- */
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+// DELETE: Eliminar una compañía por ID
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
-
   try {
-
-
-
     await prisma.company.delete({
       where: { id: parseInt(id) },
     });
-
-    return NextResponse.json({ message: 'Compañía eliminada con éxito' });
+    return NextResponse.json({ message: "Company deleted successfully" }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: `Error eliminando la compañía - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error deleting company: ${error}` }, { status: 500 });
   }
 }

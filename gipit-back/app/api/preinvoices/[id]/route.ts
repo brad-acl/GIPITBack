@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
+
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -9,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   try {
 
-
+    
 
     const preInvoice = await prisma.pre_invoices.findUnique({
       where: { id: Number(id) },
@@ -31,7 +32,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   try {
 
-
+    
 
     const preInvoice = await prisma.pre_invoices.update({
       where: { id: Number(id) },
@@ -55,7 +56,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
   try {
 
-
+    
 
     await prisma.pre_invoices.delete({
       where: { id: Number(id) },

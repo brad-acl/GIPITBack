@@ -1,66 +1,37 @@
 import { PrismaClient } from '@prisma/client';
-import { NextRequest, NextResponse } from 'next/server';
+import {  NextResponse } from 'next/server';
+
 
 const prisma = new PrismaClient();
 
-// Obtener todas las compañías (GET)
-/**
- * @swagger
- * /company:
- *   get:
- *     summary: Obtener todas las compañías
- *     responses:
- *       200:
- *         description: Lista de compañías
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Company'
- */
+
 export async function GET() {
   try {
-
-
-
     const companies = await prisma.company.findMany();
-    return NextResponse.json(companies);
+    return NextResponse.json(companies, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error fetching companies: ${error}` }, { status: 500 });
   }
 }
 
-// Crear una nueva compañía (POST)
-/**
- * @swagger
- * /company:
- *   post:
- *     summary: Crear una nueva compañía
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Company'
- *     responses:
- *       201:
- *         description: Compañía creada exitosamente
- *       500:
- *         description: Error al crear la compañía
- */
-export async function POST(req: NextRequest) {
-  const { name, description } = await req.json();
-  
+// POST: Crear una nueva compañía
+export async function POST(request: Request) {
   try {
+    const data = await request.json();
 
+    // Filtrar los datos para incluir solo los campos válidos
+    const filteredData = {
+      name: data.name,
+      logo: data.logo,
+      description: data.description,
+    };
 
-
-    const company = await prisma.company.create({
-      data: { name, description },
+    const newCompany = await prisma.company.create({
+      data: filteredData,
     });
-    return NextResponse.json(company, { status: 201 });
+
+    return NextResponse.json(newCompany, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error creating company: ${error}` }, { status: 500 });
   }
 }

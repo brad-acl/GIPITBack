@@ -1,98 +1,60 @@
 import { PrismaClient } from '@prisma/client';
-import { NextRequest, NextResponse } from 'next/server';
+import {  NextResponse } from 'next/server';
+
 
 const prisma = new PrismaClient();
 
-// Obtener todos los registros de management (GET)
-/**
- * @swagger
- * /management:
- *   get:
- *     summary: Obtener todos los registros de management
- *     responses:
- *       200:
- *         description: Lista de registros de management
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Management'
- */
-export async function GET() {
+
+
+export async function GET(request: Request) {
   try {
+    // Obtener los parámetros de la URL
+    const { searchParams } = new URL(request.url);
+    const companyId = searchParams.get("company_id");
 
+    // Verificar si se proporcionó company_id
+    if (companyId) {
+      // Convertir companyId a número
+      const companyIdNumber = parseInt(companyId, 10);
 
+      // Consultar las gestiones que pertenecen al company_id proporcionado
+      const filteredManagements = await prisma.management.findMany({
+        where: {
+          company_id: companyIdNumber,
+        },
+      });
+
+      return NextResponse.json(filteredManagements, { status: 200 });
+    }
+
+    // Si no se proporciona company_id, devolver todas las gestiones
     const managements = await prisma.management.findMany();
-    return NextResponse.json(managements);
+    return NextResponse.json(managements, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching managements - ${error}` }, { status: 500 });
+    return NextResponse.json(
+      { error: `Error fetching managements: ${error}` },
+      { status: 500 }
+    );
   }
 }
 
-// Crear un nuevo registro de management (POST)
-/**
- * @swagger
- * /management:
- *   post:
- *     summary: Crear un nuevo registro de management
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Management'
- *     responses:
- *       201:
- *         description: Registro de management creado exitosamente
- *       500:
- *         description: Error al crear el registro de management
- */
-export async function POST(req: NextRequest) {
-  const { company_id, name, description } = await req.json();
-
+export async function POST(request: Request) {
   try {
+    const data = await request.json();
 
+   
+    const filteredData = {
+      company_id: data.company_id,
+      name: data.name,
+      description: data.description,
+    };
 
-
-    const management = await prisma.management.create({
-      data: { company_id, name, description },
+    const newManagement = await prisma.management.create({
+      data: filteredData,
     });
-    return NextResponse.json(management, { status: 201 });
+
+    return NextResponse.json(newManagement, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: `Error creating management - ${error}` }, { status: 500 });
-  }
-}
-
-// Actualizar un registro de management (PUT)
-export async function PUT(req: NextRequest) {
-  const { id, name, description } = await req.json();
-
-  try {
-
-
-
-    const management = await prisma.management.update({
-      where: { id: parseInt(id) },
-      data: { name, description },
-    });
-    return NextResponse.json(management);
-  } catch (error) {
-    return NextResponse.json({ error: `Error updating management - ${error}` }, { status: 500 });
-  }
-}
-
-// Eliminar un registro de management (DELETE)
-export async function DELETE(req: NextRequest) {
-  const { id } = await req.json();
-
-  try {
-
-
-
-    await prisma.management.delete({ where: { id: parseInt(id) } });
-    return NextResponse.json({ message: 'Management deleted' }, { status: 204 });
-  } catch (error) {
-    return NextResponse.json({ error: `Error deleting management - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error creating management: ${error}` }, { status: 500 });
   }
 }
