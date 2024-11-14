@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '../../middleware'; 
+import {  NextResponse } from 'next/server';
+
 const prisma = new PrismaClient();
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
