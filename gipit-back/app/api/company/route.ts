@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '../middleware'; 
 
 const prisma = new PrismaClient();
 
@@ -20,13 +19,10 @@ const prisma = new PrismaClient();
  *               items:
  *                 $ref: '#/components/schemas/Company'
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     const companies = await prisma.company.findMany();
     return NextResponse.json(companies);
@@ -58,10 +54,7 @@ export async function POST(req: NextRequest) {
   
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     const company = await prisma.company.create({
       data: { name, description },

@@ -1,7 +1,6 @@
 // Ruta: /api/pre_invoice_items/[id]
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyToken } from '../../middleware'; 
 
 const prisma = new PrismaClient();
 
@@ -10,10 +9,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     const preInvoiceItem = await prisma.pre_invoice_items.findUnique({
       where: { id: Number(id) },
@@ -35,10 +31,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     const preInvoiceItem = await prisma.pre_invoice_items.update({
       where: { id: Number(id) },
@@ -64,10 +57,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     await prisma.pre_invoice_items.delete({
       where: { id: Number(id) },

@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '../middleware'; 
 
 const prisma = new PrismaClient();
 
@@ -19,12 +18,9 @@ const prisma = new PrismaClient();
  *               items:
  *                 $ref: '#/components/schemas/CandidateManagement'
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     const candidateManagementRecords = await prisma.candidate_management.findMany();
     return NextResponse.json(candidateManagementRecords);
@@ -68,10 +64,7 @@ export async function POST(req: NextRequest) {
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     const candidateManagement = await prisma.candidate_management.create({
       data: {

@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '../middleware'; 
 
 const prisma = new PrismaClient();
 
@@ -20,13 +19,9 @@ const prisma = new PrismaClient();
  *               items:
  *                 $ref: '#/components/schemas/Management'
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    // Verify JWT token
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     const managements = await prisma.management.findMany();
     return NextResponse.json(managements);
@@ -58,10 +53,7 @@ export async function POST(req: NextRequest) {
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     const management = await prisma.management.create({
       data: { company_id, name, description },
@@ -78,10 +70,7 @@ export async function PUT(req: NextRequest) {
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     const management = await prisma.management.update({
       where: { id: parseInt(id) },
@@ -99,10 +88,7 @@ export async function DELETE(req: NextRequest) {
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     await prisma.management.delete({ where: { id: parseInt(id) } });
     return NextResponse.json({ message: 'Management deleted' }, { status: 204 });
