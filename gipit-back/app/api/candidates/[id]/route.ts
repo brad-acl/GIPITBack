@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '../../middleware'; 
 
 const prisma = new PrismaClient();
 
@@ -31,10 +30,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     const candidate = await prisma.candidates.findUnique({
       where: { id: parseInt(id) },
@@ -79,10 +75,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     const updatedCandidate = await prisma.candidates.update({
       where: { id: parseInt(id) },
@@ -117,10 +110,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
   try {
 
-    const verificationResult = verifyToken(req);
-    if (!verificationResult.valid) {
-      return NextResponse.json({ error: verificationResult.error }, { status: 403 });
-    }
+
 
     await prisma.candidates.delete({
       where: { id: parseInt(id) },
