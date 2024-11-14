@@ -1,7 +1,7 @@
 // Ruta: /api/pre_invoices/[id]
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyToken } from '../../middleware'; 
+
 
 const prisma = new PrismaClient();
 
