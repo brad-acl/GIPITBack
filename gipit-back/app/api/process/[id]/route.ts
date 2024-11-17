@@ -7,13 +7,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { id } = params;
 
   try {
-    // Fetch the process along with associated candidates using Prisma's `include` for relation
     const process = await prisma.process.findUnique({
       where: { id: parseInt(id) },
       include: {
-        candidate_process: {  // Assuming candidate_process is the join table
+        candidate_process: { 
           select: {
-            candidates: true,  // Include related candidates data (modify according to your schema)
+            candidates: true, 
           },
         },
       },
@@ -23,15 +22,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Proceso no encontrado' }, { status: 404 });
     }
 
-    // Safely check if candidate_process is populated
     const candidatesIds = process.candidate_process?.length
       ? process.candidate_process.map(cp => cp.candidates.id)
-      : [];  // Default to an empty array if no candidates
+      : [];  
 
-    // Return the process along with the list of candidate IDs (or empty if no candidates)
     return NextResponse.json({
-      ...process,  // Spread process data
-      candidatesIds,  // Include the candidatesIds, which will be an empty array if no candidates
+      ...process, 
+      candidatesIds,  
     });
   } catch (error) {
     return NextResponse.json({ error: `Error - ${error.message}` }, { status: 500 });
@@ -45,7 +42,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const { id } = params;
   const { job_offer, job_offer_description, company_id, opened_at, closed_at, pre_filtered, status } = await req.json();
 
-  // Basic validation for required fields
   if (!job_offer || !job_offer_description || !company_id) {
     return NextResponse.json(
       { error: 'Missing required fields: job_offer, job_offer_description, company_id' },
@@ -53,11 +49,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     );
   }
 
-  // Convert opened_at and closed_at to Date objects
   const openedAtDate = opened_at ? new Date(opened_at) : null;
   const closedAtDate = closed_at ? new Date(closed_at) : null;
 
-  // Validate dates
   if (openedAtDate && isNaN(openedAtDate.getTime())) {
     return NextResponse.json({ error: 'Invalid opened_at date format' }, { status: 400 });
   }
@@ -65,17 +59,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Invalid closed_at date format' }, { status: 400 });
   }
 
-  // Convert pre_filtered to boolean
   const preFilteredBool = pre_filtered === 'true' || pre_filtered === true;
 
   try {
-    // Prisma update operation
     const updatedProcess = await prisma.process.update({
       where: { id: parseInt(id) },
       data: {
         job_offer,
         job_offer_description,
-        company_id: parseInt(company_id), // Ensure company_id is an integer
+        company_id: parseInt(company_id), 
         opened_at: openedAtDate,
         closed_at: closedAtDate,
         pre_filtered: preFilteredBool,
@@ -87,5 +79,23 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   } catch (error) {
     console.error("Error updating process:", error);
     return NextResponse.json({ error: `Error updating process: ${error.message || error}` }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params;
+
+  try {
+    const deletedProcess = await prisma.process.delete({
+      where: { id: parseInt(id) },
+    });
+
+    return NextResponse.json({
+      message: 'Proceso eliminado con éxito',
+      deletedProcess, 
+    });
+  } catch (error) {
+    console.error("Error deleting process:", error);
+    return NextResponse.json({ error: `Error deleting process: ${error.message || error}` }, { status: 500 });
   }
 }
