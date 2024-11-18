@@ -3,28 +3,41 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
+export async function GET(req: NextRequest) {
+  const { process_id } = req.query;  // Destructure the query parameter
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+  if (!process_id || isNaN(Number(process_id))) {
+    // Ensure the process_id is present and is a valid number
+    return NextResponse.json({ error: 'Invalid or missing process_id query parameter' }, { status: 400 });
+  }
 
   try {
+    // Query all candidate_process entries for a specific process_id
     const candidateProcesses = await prisma.candidate_process.findMany({
-      where: { process_id: parseInt(id) },
+      where: {
+        process_id: parseInt(process_id as string), // Safely parse the process_id to integer
+      },
       include: {
-        candidates: true, 
-        process: true,
+        candidates: true,  // Include related candidate data
+        process: true,     // Include related process data
       },
     });
 
     if (candidateProcesses.length === 0) {
-      return NextResponse.json({ error: 'No candidates found for this process' }, { status: 404 });
+      // Handle the case where no candidate processes are found
+      return NextResponse.json({ error: 'No candidate processes found for this process.' }, { status: 404 });
     }
 
+    // Return the candidate processes along with related candidate and process data
     return NextResponse.json(candidateProcesses);
   } catch (error) {
-    return NextResponse.json({ error: `Error - ${error.message}` }, { status: 500 });
+    // General error handler for any unexpected issues
+    return NextResponse.json({ error: `Server Error - ${error.message}` }, { status: 500 });
   }
 }
+
+
+
 
 
 
