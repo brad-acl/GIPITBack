@@ -3,85 +3,66 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
-/**
- * @swagger
- * /process:
- *   post:
- *     summary: Crear un nuevo proceso
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               job_offer:
- *                 type: string
- *               job_offer_description:
- *                 type: string
- *               company_id:
- *                 type: integer
- *               opened_at:
- *                 type: string
- *                 format: date-time
- *               closed_at:
- *                 type: string
- *                 format: date-time
- *               pre_filtered:
- *                 type: boolean
- *               status:
- *                 type: string
- *     responses:
- *       201:
- *         description: Proceso creado exitosamente
- *       500:
- *         description: Error al crear el proceso
- */
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
+    const url = new URL(req.url);
+    const page = parseInt(url.searchParams.get('page') || '1', 10);
+    const pageSize = 15;
 
+    console.log(`Fetching processes for page: ${page}`);
 
-    const { job_offer, job_offer_description, company_id, opened_at, closed_at, pre_filtered, status } = await req.json();
+    if (page < 1) {
+      return NextResponse.json({ error: 'Page number must be greater than 0.' }, { status: 400 });
+    }
 
-    const process = await prisma.process.create({
-      data: {
-        job_offer,
-        job_offer_description,
-        company_id,
-        opened_at: opened_at ? new Date(opened_at) : null,
-        closed_at: closed_at ? new Date(closed_at) : null,
-        pre_filtered,
-        status,
-      },
+    const processes = await prisma.process.findMany({
+      skip: (page - 1) * pageSize, 
+      take: pageSize, 
     });
-    return NextResponse.json(process, { status: 201 });
+
+    const total = await prisma.process.count();
+
+    console.log(`Returning ${processes.length} processes for page ${page}`);
+
+    return NextResponse.json({
+      total,
+      batch: processes,
+    }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: `Error creating process - ${error}` }, { status: 500 });
+    console.error('Error fetching processes:', error);
+    return NextResponse.json({ error: `Error  - ${error}` }, { status: 500 });
   }
 }
 
-/**
- * @swagger
- * /process:
- *   get:
- *     summary: Obtener todos los procesos
- *     responses:
- *       200:
- *         description: Lista de procesos
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Process'
- */
-export async function GET() {
+
+
+
+export async function POST(request: NextRequest) {
   try {
+    const data = await request.json();
+    console.log("Received data from frontend:", data);
 
+    const filteredData = {
+      job_offer: data.job_offer,
+      job_offer_description: data.job_offer_description,
+      company_id: data.company_id,
+      opened_at: data.opened_at ? new Date(data.opened_at) : null,
+      closed_at: data.closed_at ? new Date(data.closed_at) : null,
+      pre_filtered: data.pre_filtered,
+      status: data.status,
+    };
 
-    const processes = await prisma.process.findMany();
-    return NextResponse.json(processes);
+    console.log("Filtered data for Prisma:", filteredData);
+
+    const newProcess = await prisma.process.create({
+      data: filteredData,
+    });
+
+    console.log("Created new process:", newProcess);
+
+    return NextResponse.json(newProcess, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching processes - ${error}` }, { status: 500 });
+    console.error("Error creating process:", error);
+    return NextResponse.json({ error: `Error  - ${error}` }, { status: 500 });
   }
 }
