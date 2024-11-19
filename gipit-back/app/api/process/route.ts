@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     }, { status: 200 });
   } catch (error) {
     console.error('Error fetching processes:', error);
-    return NextResponse.json({ error: `Error fetching processes: ${error.message}` }, { status: 500 });
+    return NextResponse.json({ error: `Error  - ${error}` }, { status: 500 });
   }
 }
 
@@ -63,6 +63,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(newProcess, { status: 201 });
   } catch (error) {
     console.error("Error creating process:", error);
-    return NextResponse.json({ error: `Error creating process: ${error.message}` }, { status: 500 });
+    return NextResponse.json({ error: `Error  - ${error}` }, { status: 500 });
   }
 }
