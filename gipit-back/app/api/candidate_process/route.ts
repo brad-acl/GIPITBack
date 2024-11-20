@@ -19,28 +19,24 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(candidateProcess, { status: 201 });
-  } catch (error: unknown) { 
-    if (error instanceof Error) {  
-      return NextResponse.json({ error: `Error al asociar candidato al proceso: ${error.message}` }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'Unknown error occurred' }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: `Error al asociar candidato al proceso: ${error.message}` }, { status: 500 });
   }
 }
 
 
 export async function GET() {
   try {
-    const candidateProcesses = await prisma.candidate_process.findMany();
+    const candidateProcesses = await prisma.candidate_process.findMany({
+
+    });
 
     if (!candidateProcesses || candidateProcesses.length === 0) {
       return NextResponse.json({ error: 'No candidate-process relationships found' }, { status: 404 });
     }
 
     return NextResponse.json(candidateProcesses);
-  } catch (error: unknown) {  
-    if (error instanceof Error) { 
-      return NextResponse.json({ error: `Error fetching data: ${error.message}` }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'Unknown error occurred' }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: `Error fetching data: ${error.message}` }, { status: 500 });
   }
 }

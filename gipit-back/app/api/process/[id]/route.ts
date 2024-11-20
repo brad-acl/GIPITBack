@@ -4,22 +4,23 @@ import { NextRequest, NextResponse } from 'next/server';
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+  const { id } = params; // Extract process ID from URL params
 
   try {
+    // Query the process by ID and include the associated candidates
     const process = await prisma.process.findUnique({
-      where: { id: parseInt(id) },  
+      where: { id: parseInt(id) },  // Fetch process using the given ID
       include: {
         candidate_process: {
           select: {
-            candidates: { 
+            candidates: { // Only select candidate data
               select: {
                 id: true,
                 name: true,
                 email: true,
                 phone: true,
                 address: true,
-                jsongpt_text: true, 
+                jsongpt_text: true, // Include any additional info
               },
             },
           },
@@ -31,16 +32,18 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Proceso no encontrado' }, { status: 404 });
     }
 
+    // Flatten the candidates data from the candidate_process relation
     const candidates = process.candidate_process.map(cp => cp.candidates);
 
+    // Return process data along with the candidates
     return NextResponse.json({
       processId: process.id,
       jobOffer: process.job_offer,
       jobOfferDescription: process.job_offer_description,
-      candidates, 
+      candidates, // Include only the candidates data
     });
   } catch (error) {
-    return NextResponse.json({ error: `Error  - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error - ${error.message}` }, { status: 500 });
   }
 }
 
@@ -88,7 +91,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json(updatedProcess);
   } catch (error) {
     console.error("Error updating process:", error);
-    return NextResponse.json({ error: `Error  - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error updating process: ${error.message || error}` }, { status: 500 });
   }
 }
 
@@ -106,6 +109,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     });
   } catch (error) {
     console.error("Error deleting process:", error);
-    return NextResponse.json({ error: `Error  - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error deleting process: ${error.message || error}` }, { status: 500 });
   }
 }
