@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-import { jwtSecret } from '../api/config/config';
+
+import { NextRequest, NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
+import { jwtSecret } from "../api/config/config";
 
 interface TokenVerificationSuccess {
   valid: true;
@@ -14,39 +15,62 @@ interface TokenVerificationError {
 
 type TokenVerificationResult = TokenVerificationSuccess | TokenVerificationError;
 
+// Verifica el token JWT
 export const verifyToken = (req: NextRequest): TokenVerificationResult => {
-  const token = req.headers.get('authorization')?.split(' ')[1];
+  const token = req.headers.get("authorization")?.split(" ")[1];
 
   if (!token) {
-    return { valid: false, error: 'Token not provided.' };
+    return { valid: false, error: "Token not provided." };
   }
 
   try {
     const decoded = jwt.verify(token, jwtSecret) as jwt.JwtPayload;
 
     if (!decoded || !decoded.role) {
-      return { valid: false, error: 'Role not found in token.' };
+      return { valid: false, error: "Role not found in token." };
     }
 
     return { valid: true, decoded };
   } catch (err) {
     console.error(err);
-    return { valid: false, error: 'Failed to authenticate token.' };
+    return { valid: false, error: "Failed to authenticate token." };
   }
 };
 
-// Middleware function to validate role-based access
-export const authorizeRole = (req: NextRequest, allowedRoles: string[]): NextResponse | undefined => {
-  const verificationResult = verifyToken(req);
+// Middleware principal con manejo de CORS
+export function middleware(req: NextRequest) {
+  
+  const response = NextResponse.next();
 
-  if (!verificationResult.valid) {
-    return NextResponse.json({ error: verificationResult.error }, { status: 403 });
+  // Configuración de CORS
+  const origin = req.headers.get("origin");
+  const allowedOrigins = ["http://localhost:3000"]; // Orígenes permitidos
+
+  if (req.method === "OPTIONS") {
+    // Responde a preflight requests
+    response.headers.set(
+      "Access-Control-Allow-Origin",
+      allowedOrigins.includes(origin || "") ? origin! : "*"
+    );
+    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    response.headers.set("Access-Control-Allow-Credentials", "true");
+    return response;
   }
 
-  const { role } = verificationResult.decoded;
-  if (!allowedRoles.includes(role)) {
-    return NextResponse.json({ error: 'Access denied: insufficient permissions' }, { status: 403 });
-  }
+  // Configura los encabezados de CORS para otras solicitudes
+  response.headers.set(
+    "Access-Control-Allow-Origin",
+    allowedOrigins.includes(origin || "") ? origin! : "*"
+  );
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  response.headers.set("Access-Control-Allow-Credentials", "true");
 
-  return undefined; // Allows access if role is authorized
+  return response;
+}
+
+export const config = {
+  matcher: "/api/:path*", // Aplica el middleware a las rutas /api
 };
+

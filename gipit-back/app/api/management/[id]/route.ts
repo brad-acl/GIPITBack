@@ -1,3 +1,4 @@
+
 import { PrismaClient } from '@prisma/client';
 import {  NextResponse } from 'next/server';
 
@@ -5,6 +6,7 @@ import {  NextResponse } from 'next/server';
 const prisma = new PrismaClient();
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
+ 
   const { id } = params;
   try {
     const management = await prisma.management.findUnique({
