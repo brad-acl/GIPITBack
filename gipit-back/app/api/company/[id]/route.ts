@@ -3,22 +3,65 @@ import {  NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
+
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
+
+  if (req.method === "OPTIONS") {
+    // Manejo de preflight request
+    const response = new Response(null, { status: 204 });
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    return response;
+  }
+
   try {
     const company = await prisma.company.findUnique({
       where: { id: parseInt(id) },
     });
-    if (!company) return NextResponse.json({ error: "Company not found" }, { status: 404 });
-    return NextResponse.json(company, { status: 200 });
+
+    if (!company) {
+      const notFoundResponse = NextResponse.json(
+        { error: "Company not found" },
+        { status: 404 }
+      );
+      // Configurar encabezados CORS en caso de error
+      notFoundResponse.headers.set("Access-Control-Allow-Origin", "*");
+      notFoundResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+      notFoundResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      return notFoundResponse;
+    }
+
+    const response = NextResponse.json(company, { status: 200 });
+
+    // Configurar encabezados CORS en caso de éxito
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    return response;
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching company: ${error}` }, { status: 500 });
+    console.error("Error fetching company:", error);
+
+    const errorResponse = NextResponse.json(
+      { error: `Error fetching company: ${error}` },
+      { status: 500 }
+    );
+
+    // Configurar encabezados CORS también en caso de error
+    errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+    errorResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    return errorResponse;
   }
 }
 
-// PUT: Actualizar una compañía por ID
+
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
+
   try {
     const data = await req.json();
 
@@ -34,12 +77,30 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       data: filteredData,
     });
 
-    return NextResponse.json(updatedCompany, { status: 200 });
+    const response = NextResponse.json(updatedCompany, { status: 200 });
+
+    // Configurar los encabezados CORS
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    return response;
   } catch (error) {
-    return NextResponse.json({ error: `Error updating company: ${error}` }, { status: 500 });
+    console.error("Error updating company:", error);
+
+    const errorResponse = NextResponse.json(
+      { error: `Error updating company: ${error}` },
+      { status: 500 }
+    );
+
+    // Configurar los encabezados CORS también en caso de error
+    errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+    errorResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    return errorResponse;
   }
 }
-
 // DELETE: Eliminar una compañía por ID
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
