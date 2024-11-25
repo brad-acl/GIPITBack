@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
-  const { candidate_ids, technical_skills, soft_skills, client_comments } = await req.json();
+  const { candidate_ids, technical_skills, soft_skills, client_comments, match_percent, interview_questions } = await req.json();
 
   try {
     const existingCandidateProcess = await prisma.candidate_process.findUnique({
@@ -58,7 +58,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     const updatedCandidateProcess = await prisma.candidate_process.update({
       where: { id: parseInt(id) },
-      data: { technical_skills, soft_skills, client_comments },
+      data: { technical_skills, soft_skills, client_comments, match_percent, interview_questions },
     });
 
     if (candidate_ids && candidate_ids.length > 0) {
