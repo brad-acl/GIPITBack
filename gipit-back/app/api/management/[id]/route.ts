@@ -5,17 +5,34 @@ import {  NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
+
 export async function GET(req: Request, { params }: { params: { id: string } }) {
- 
   const { id } = params;
+
   try {
     const management = await prisma.management.findUnique({
       where: { id: parseInt(id) },
     });
-    if (!management) return NextResponse.json({ error: "Management not found" }, { status: 404 });
-    return NextResponse.json(management, { status: 200 });
+
+    if (!management) {
+      const notFoundResponse = NextResponse.json({ error: "Management not found" }, { status: 404 });
+      notFoundResponse.headers.set("Access-Control-Allow-Origin", "*");
+      notFoundResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+      notFoundResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      return notFoundResponse;
+    }
+
+    const response = NextResponse.json(management, { status: 200 });
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    return response;
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching management: ${error}` }, { status: 500 });
+    const errorResponse = NextResponse.json({ error: `Error fetching management: ${error}` }, { status: 500 });
+    errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+    errorResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    return errorResponse;
   }
 }
 

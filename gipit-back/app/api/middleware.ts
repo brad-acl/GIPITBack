@@ -44,7 +44,7 @@ export function middleware(req: NextRequest) {
 
   // Configuración de CORS
   const origin = req.headers.get("origin");
-  const allowedOrigins = ["http://localhost:3000"]; // Orígenes permitidos
+  const allowedOrigins = ["http://localhost:3000","gipit-front.vercel.app"]; // Orígenes permitidos
 
   if (req.method === "OPTIONS") {
     // Responde a preflight requests

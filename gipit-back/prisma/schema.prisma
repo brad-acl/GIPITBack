@@ -30,6 +30,8 @@ model candidate_process {
   technical_skills String?
   soft_skills      String?
   client_comments  String?
+  match_percent    Int?
+  interview_questions    String?
   candidates       candidates?        @relation(fields: [candidate_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   process          process?           @relation(fields: [process_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   comments_process comments_process[]
