@@ -13,22 +13,56 @@ export async function GET() {
 }
 
 
-export async function POST(request: Request) {
+
+export async function POST(req: Request) {
   try {
-    const data = await request.json();
+    const { user_id, management_id} = await req.json();
 
-    
-    const filteredData = {
-      user_id: data.user_id,
-      management_id: data.management_id,
-    };
+    // Validar que user_id y management_id sean válidos
+    if (!user_id || !management_id) {
+      return NextResponse.json(
+        { error: "Both user_id and management_id are required" },
+        { status: 400 }
+      );
+    }
 
-    const newUserManagement = await prisma.users_management.create({
-      data: filteredData,
+    // Verificar que el usuario exista
+    const userExists = await prisma.users.findUnique({
+      where: { id: user_id },
+    });
+    if (!userExists) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // Verificar que la jefatura exista
+    const managementExists = await prisma.management.findUnique({
+      where: { id: management_id },
+    });
+    if (!managementExists) {
+      return NextResponse.json(
+        { error: "Management not found" },
+        { status: 404 }
+      );
+    }
+
+    // Crear el registro de users_management
+    const userManagement = await prisma.users_management.create({
+      data: {
+        user_id,
+        management_id,
+        
+      },
     });
 
-    return NextResponse.json(newUserManagement, { status: 201 });
+    return NextResponse.json(userManagement, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: `Error creating user management: ${error}` }, { status: 500 });
+    console.error("Error creating user-management:", error);
+    return NextResponse.json(
+      { error: `Error creating user-management: ${error}` },
+      { status: 500 }
+    );
   }
 }
