@@ -8,11 +8,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   try {
     const process = await prisma.process.findUnique({
-      where: { id: parseInt(id) }, 
+      where: { id: parseInt(id) },
       include: {
         candidate_process: {
           select: {
-            candidates: { 
+            candidates: {
               select: {
                 id: true,
                 name: true,
@@ -35,42 +35,36 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json({
       processId: process.id,
-      jobOffer: process.job_offer, 
+      jobOffer: process.job_offer,
       jobOfferDescription: process.job_offer_description,
       candidates,
-      status: process.status ?? '', 
-      openedAt: process.opened_at ? new Date(process.opened_at).toLocaleDateString() : null, 
-      closedAt: process.closed_at ? new Date(process.closed_at).toLocaleDateString() : null, 
-      preFiltered: process.pre_filtered ?? false, 
+      status: process.status ?? '',
+      openedAt: process.opened_at ? new Date(process.opened_at).toLocaleDateString() : null,
+      closedAt: process.closed_at ? new Date(process.closed_at).toLocaleDateString() : null,
+      preFiltered: process.pre_filtered ?? false,
     });
   } catch (error) {
-    return NextResponse.json({ error: `Error - ${error.message}` }, { status: 500 });
+    return NextResponse.json({ error: `Error al recuperar procesos: ${error}` }, { status: 500 });
   }
 }
-
-
-
-
-
-
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
   const { job_offer_description, opened_at, closed_at, pre_filtered, status } = await req.json();
 
-  // Ensure job_offer_description is provided
+  // Asegurarse de que se haya proporcionado la descripción de la oferta de trabajo
   if (!job_offer_description) {
     return NextResponse.json(
-      { error: 'faltan campos: job_offer_description' },
+      { error: 'Faltan campos: job_offer_description' },
       { status: 400 }
     );
   }
 
-  // Parse the date fields, if provided
+  // Parsear los campos de fecha, si se proporcionan
   const openedAtDate = opened_at ? new Date(opened_at) : null;
   const closedAtDate = closed_at ? new Date(closed_at) : null;
 
-  // Validate dates if they are provided
+  // Validar las fechas si se proporcionan
   if (openedAtDate && isNaN(openedAtDate.getTime())) {
     return NextResponse.json({ error: 'Fecha de apertura inválida' }, { status: 400 });
   }
@@ -78,15 +72,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Fecha de cierre inválida' }, { status: 400 });
   }
 
-  // Parse the pre_filtered field
+  // Parsear el campo pre_filtered
   const preFilteredBool = pre_filtered === 'true' || pre_filtered === true;
 
   try {
-    // Update process in the database with only the job offer description
+    // Actualizar el proceso en la base de datos con solo la descripción de la oferta de trabajo
     const updatedProcess = await prisma.process.update({
       where: { id: parseInt(id) },
       data: {
-        job_offer_description, // Update the job_offer_description
+        job_offer_description, // Actualizar la descripción de la oferta de trabajo
         opened_at: openedAtDate,
         closed_at: closedAtDate,
         pre_filtered: preFilteredBool,
@@ -94,10 +88,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       },
     });
 
-    return NextResponse.json(updatedProcess); // Return the updated process details
+    return NextResponse.json(updatedProcess); // Devolver los detalles del proceso actualizado
   } catch (error) {
-    console.error("Error actualizando proceso:", error);
-    return NextResponse.json({ error: `Error actualizando proceso: ${error.message || error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error al actualizar proceso: ${error}` }, { status: 500 });
   }
 }
 
@@ -111,10 +104,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     return NextResponse.json({
       message: 'Proceso eliminado con éxito',
-      deletedProcess, 
+      deletedProcess,
     });
   } catch (error) {
-    console.error("Error eliminando proceso:", error);
-    return NextResponse.json({ error: `Error eliminando proceso: ${error.message || error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error al eliminar id: ${error}` }, { status: 500 });
   }
 }

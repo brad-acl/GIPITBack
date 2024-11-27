@@ -4,46 +4,32 @@ import { NextRequest, NextResponse } from 'next/server';
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
-  const { process_id } = req.query;  // Destructure the query parameter
+  const process_id = req.nextUrl.searchParams.get('process_id');  // Acceder al parámetro de consulta
 
   if (!process_id || isNaN(Number(process_id))) {
-    // Ensure the process_id is present and is a valid number
-    return NextResponse.json({ error: 'Invalid or missing process_id query parameter' }, { status: 400 });
+    return NextResponse.json({ error: 'Parámetro process_id inválido o ausente' }, { status: 400 });
   }
 
   try {
-    // Query all candidate_process entries for a specific process_id
     const candidateProcesses = await prisma.candidate_process.findMany({
       where: {
-        process_id: parseInt(process_id as string), // Safely parse the process_id to integer
+        process_id: parseInt(process_id), // Convertir process_id a número entero
       },
       include: {
-        candidates: true,  // Include related candidate data
-        process: true,     // Include related process data
+        candidates: true,  // Incluir datos relacionados con los candidatos
+        process: true,     // Incluir datos relacionados con el proceso
       },
     });
 
     if (candidateProcesses.length === 0) {
-      // Handle the case where no candidate processes are found
-      return NextResponse.json({ error: 'No candidate processes found for this process.' }, { status: 404 });
+      return NextResponse.json({ error: 'No se encontraron procesos de candidatos para este proceso.' }, { status: 404 });
     }
 
-    // Return the candidate processes along with related candidate and process data
     return NextResponse.json(candidateProcesses);
   } catch (error) {
-    // General error handler for any unexpected issues
-    return NextResponse.json({ error: `Server Error - ${error.message}` }, { status: 500 });
+    return NextResponse.json({ error: `Error al recuperar candidate_process: ${error}` }, { status: 500 });
   }
 }
-
-
-
-
-
-
-
-
-
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
@@ -55,7 +41,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     });
 
     if (!existingCandidateProcess) {
-      return NextResponse.json({ error: 'Candidate-Process association not found' }, { status: 404 });
+      return NextResponse.json({ error: 'No se encontró la asociación Candidate-Process' }, { status: 404 });
     }
 
     const updatedCandidateProcess = await prisma.candidate_process.update({
@@ -63,6 +49,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       data: { technical_skills, soft_skills, client_comments, match_percent, interview_questions },
     });
 
+    // Manejar la adición de nuevos candidatos si se proporcionan
     if (candidate_ids && candidate_ids.length > 0) {
       const addedCandidates = await Promise.all(
         candidate_ids.map(async (candidateId: number) => {
@@ -71,46 +58,47 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           });
 
           if (!candidate) {
-            throw new Error(`Candidate with ID ${candidateId} not found`);
+            throw new Error(`Candidato con ID ${candidateId} no encontrado`);
           }
 
           return prisma.candidate_process.create({
             data: {
               candidate_id: candidateId,
-              process_id: parseInt(id), 
+              process_id: parseInt(id),
             },
           });
         })
       );
 
       return NextResponse.json({
-        message: 'Candidate-Process updated and candidates added successfully',
+        message: 'Candidate-Process actualizado y candidatos agregados con éxito',
         updatedCandidateProcess,
         addedCandidates,
       });
     } else {
       return NextResponse.json({
-        message: 'Candidate-Process updated successfully',
+        message: 'Candidate-Process actualizado con éxito',
         updatedCandidateProcess,
       });
     }
   } catch (error) {
-    return NextResponse.json({ error: `Error - ${error.message}` }, { status: 500 });
+    return NextResponse.json({ error: `Error al actualizar candidate_process: ${error}` }, { status: 500 });
   }
 }
-
-
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
 
   try {
-    await prisma.candidate_process.delete({
+    const deletedProcess = await prisma.candidate_process.delete({
       where: { id: parseInt(id) },
     });
 
-    return NextResponse.json({ message: 'Candidate-Process association deleted successfully' });
+    return NextResponse.json({
+      message: 'Asociación Candidate-Process eliminada con éxito',
+      deletedProcess, // También puedes devolver el proceso eliminado para confirmación
+    });
   } catch (error) {
-    return NextResponse.json({ error: `Error - ${error.message}` }, { status: 500 });
+    return NextResponse.json({ error: `Error al eliminar candidate_process: ${error}` }, { status: 500 });
   }
 }

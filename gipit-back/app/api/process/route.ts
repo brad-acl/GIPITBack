@@ -9,10 +9,10 @@ export async function GET(req: NextRequest) {
     const page = parseInt(url.searchParams.get('page') || '1', 10);
     const pageSize = 15;
 
-    console.log(`Fetching processes for page: ${page}`);
+    console.log(`Obteniendo procesos para la página: ${page}`);
 
     if (page < 1) {
-      return NextResponse.json({ error: 'Page number must be greater than 0.' }, { status: 400 });
+      return NextResponse.json({ error: 'El número de página debe ser mayor que 0.' }, { status: 400 });
     }
 
     const processes = await prisma.process.findMany({
@@ -22,25 +22,21 @@ export async function GET(req: NextRequest) {
 
     const total = await prisma.process.count();
 
-    console.log(`Returning ${processes.length} processes for page ${page}`);
+    console.log(`Devolviendo ${processes.length} procesos para la página ${page}`);
 
     return NextResponse.json({
       total,
       batch: processes,
     }, { status: 200 });
   } catch (error) {
-    console.error('Error fetching processes:', error);
-    return NextResponse.json({ error: `Error fetching processes: ${error.message}` }, { status: 500 });
+    return NextResponse.json({ error: `Error al recuperar proceso: ${error}` }, { status: 500 });
   }
 }
-
-
-
 
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    console.log("Received data from frontend:", data);
+    console.log("Datos recibidos del frontend:", data);
 
     const filteredData = {
       job_offer: data.job_offer,
@@ -52,17 +48,16 @@ export async function POST(request: NextRequest) {
       status: data.status,
     };
 
-    console.log("Filtered data for Prisma:", filteredData);
+    console.log("Datos filtrados para Prisma:", filteredData);
 
     const newProcess = await prisma.process.create({
       data: filteredData,
     });
 
-    console.log("Created new process:", newProcess);
+    console.log("Nuevo proceso creado:", newProcess);
 
     return NextResponse.json(newProcess, { status: 201 });
   } catch (error) {
-    console.error("Error creating process:", error);
-    return NextResponse.json({ error: `Error creating process: ${error.message}` }, { status: 500 });
+    return NextResponse.json({ error: `Error al postear proceso: ${error}` }, { status: 500 });
   }
 }
