@@ -6,14 +6,21 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    
-
-    const preInvoices = await prisma.pre_invoices.findMany();
+    const preInvoices = await prisma.pre_invoices.findMany({
+      select: {
+        id: true,
+        estimated_date: true,
+        expiration_date: true,
+        total_value: true,
+        status: true,
+      },
+    });
     return NextResponse.json(preInvoices);
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `error recopilando informacion - ${error}` }, { status: 500 });
   }
 }
+
 
 const currentDate = new Date(); 
 const nextMonthDate = new Date(); 
