@@ -25,18 +25,3 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
-  try {
-    const candidateProcesses = await prisma.candidate_process.findMany({
-
-    });
-
-    if (!candidateProcesses || candidateProcesses.length === 0) {
-      return NextResponse.json({ error: 'No se encontraron relaciones de candidato-proceso' }, { status: 404 });
-    }
-
-    return NextResponse.json(candidateProcesses);
-  } catch (error) {
-    return NextResponse.json({ error: `Error al actualizar la gestión de usuarios: ${error}` }, { status: 500 });
-  }
-}

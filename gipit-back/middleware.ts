@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { jwtSecret } from "../api/config/config";
+import { jwtSecret } from "./app/api/config/config";
 
 interface TokenVerificationSuccess {
   valid: true;

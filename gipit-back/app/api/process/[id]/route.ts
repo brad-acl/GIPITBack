@@ -7,11 +7,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { id } = params;
 
   try {
+    // Consulta para obtener el proceso y los candidatos asociados, incluyendo match_percent
     const process = await prisma.process.findUnique({
       where: { id: parseInt(id) },
       include: {
         candidate_process: {
           select: {
+            match_percent: true, // Selecciona el match_percent del candidato
             candidates: {
               select: {
                 id: true,
@@ -31,17 +33,24 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Proceso no encontrado' }, { status: 404 });
     }
 
-    const candidates = process.candidate_process.flatMap(cp => cp.candidates);
+    // Mapeo de los candidatos para incluir el campo match_percent
+    const candidates = process.candidate_process.map((cp) => ({
+      id: cp.candidates?.id,
+      name: cp.candidates?.name,
+      email: cp.candidates?.email,
+      phone: cp.candidates?.phone,
+      address: cp.candidates?.address,
+      jsongpt_text: cp.candidates?.jsongpt_text,
+      match: cp.match_percent ?? 0, // Añadir el porcentaje de compatibilidad desde candidate_process
+    }));
 
+    // Crear la respuesta combinada del proceso y los candidatos
     return NextResponse.json({
       processId: process.id,
       jobOffer: process.job_offer,
       jobOfferDescription: process.job_offer_description,
+      stage: 'Entrevistas',
       candidates,
-      status: process.status ?? '',
-      openedAt: process.opened_at ? new Date(process.opened_at).toLocaleDateString() : null,
-      closedAt: process.closed_at ? new Date(process.closed_at).toLocaleDateString() : null,
-      preFiltered: process.pre_filtered ?? false,
     });
   } catch (error) {
     return NextResponse.json({ error: `Error al recuperar procesos: ${error}` }, { status: 500 });

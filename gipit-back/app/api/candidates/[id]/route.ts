@@ -25,23 +25,70 @@ const prisma = new PrismaClient();
  *       404:
  *         description: Candidato no encontrado
  */
+// export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+//   const { id } = params;
+
+//   try {
+
+
+
+//     const candidate = await prisma.candidates.findUnique({
+//       where: { id: parseInt(id) },
+//     });
+
+//     if (!candidate) {
+//       return NextResponse.json({ error: 'Candidato no encontrado' }, { status: 404 });
+//     }
+
+//     return NextResponse.json(candidate);
+//   } catch (error) {
+//     return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
+//   }
+// }
+
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
+  const candidateId = parseInt(id);
+
+  if (isNaN(candidateId)) {
+    return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+  }
 
   try {
-
-
-
+    // Obtener el candidato y la información relevante de candidate_process
     const candidate = await prisma.candidates.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: candidateId },
+      include: {
+        candidate_process: true, // Incluir los datos de candidate_process
+      },
     });
 
     if (!candidate) {
       return NextResponse.json({ error: 'Candidato no encontrado' }, { status: 404 });
     }
 
-    return NextResponse.json(candidate);
+    // Extraer datos de candidate_process (tomando el primer proceso, asumiendo que hay uno solo)
+    const candidateProcess = candidate.candidate_process.length > 0 ? candidate.candidate_process[0] : null;
+
+    const response = {
+      name: candidate.name,
+      match: candidateProcess?.match_percent ?? 0, // Porcentaje de compatibilidad
+      // totalExperience: candidateProcess?.total_experience// Si existe una propiedad para experiencia total, aquí debes ajustarla
+      email: candidate.email ?? '',
+      phone: candidate.phone ?? '',
+      address: candidate.address ?? '',
+      sumary: candidate.jsongpt_text ?? '', // Resumen del candidato
+      techSkills: candidateProcess?.technical_skills ?? '', // Habilidades técnicas
+      softSkills: candidateProcess?.soft_skills ?? '', // Habilidades blandas
+      clientNote: {
+        comment: candidateProcess?.client_comments ?? '',
+      },
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
+    console.error('Error al obtener candidato:', error);
     return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }
@@ -88,36 +135,44 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-/**
- * @swagger
- * /candidates/{id}:
- *   delete:
- *     summary: Eliminar un candidato
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Candidato eliminado correctamente
- *       500:
- *         description: Error al eliminar el candidato
- */
+
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
+  const candidateId = parseInt(id);
+
+  // Validar si el ID es un número válido
+  if (isNaN(candidateId)) {
+    return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+  }
 
   try {
+    // Verificar si el candidato existe antes de intentar eliminarlo
+    const existingCandidate = await prisma.candidates.findUnique({
+      where: { id: candidateId },
+    });
 
+    if (!existingCandidate) {
+      return NextResponse.json({ error: 'Candidato no encontrado' }, { status: 404 });
+    }
 
+    // Primero eliminar cualquier registro relacionado en candidate_process
+    await prisma.candidate_process.deleteMany({
+      where: { candidate_id: candidateId },
+    });
 
+    // Luego, eliminar cualquier registro relacionado en candidate_management
+    await prisma.candidate_management.deleteMany({
+      where: { candidate_id: candidateId },
+    });
+
+    // Finalmente, eliminar el candidato
     await prisma.candidates.delete({
-      where: { id: parseInt(id) },
+      where: { id: candidateId },
     });
 
     return NextResponse.json({ message: 'Candidato eliminado con éxito' });
   } catch (error) {
-    return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
+    console.error('Error al eliminar candidato:', error);
+    return NextResponse.json({ error: `Error al eliminar candidato - ${error}` }, { status: 500 });
   }
 }
