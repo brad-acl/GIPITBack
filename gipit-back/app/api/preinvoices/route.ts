@@ -4,23 +4,44 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+
+export async function GET(req: NextRequest) {
   try {
+    const url = new URL(req.url);
+    const page = parseInt(url.searchParams.get('page') || '1', 10);
+    const pageSize = 15;
+
+    if (page < 1) {
+      return NextResponse.json({ error: 'El número de página debe ser mayor que 0.' }, { status: 400 });
+    }
+
     const preInvoices = await prisma.pre_invoices.findMany({
-      select: {
-        id: true,
-        estimated_date: true,
-        expiration_date: true,
-        total_value: true,
-        status: true,
+      skip: (page - 1) * pageSize, 
+      take: pageSize,      
+      include: {
+        _count: {
+          select: {
+            pre_invoice_items: true,
+          },
+        },
       },
     });
-    return NextResponse.json(preInvoices);
+
+    const total = await prisma.pre_invoices.count();
+
+    const formattedPreInvoices = preInvoices.map((preInvoice) => ({
+      ...preInvoice,
+      cantidad: preInvoice._count.pre_invoice_items || 0, 
+    }));
+
+    return NextResponse.json({
+      total, 
+      batch: formattedPreInvoices,
+    });
   } catch (error) {
-    return NextResponse.json({ error: `error recopilando informacion - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error llamando informacion de facturas - ${error}` }, { status: 500 });
   }
 }
-
 
 const currentDate = new Date(); 
 const nextMonthDate = new Date(); 
@@ -42,6 +63,6 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(preInvoice, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error llamando actualizando factura - ${error}` }, { status: 500 });
   }
 }
