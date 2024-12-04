@@ -5,10 +5,21 @@ const prisma = new PrismaClient();
 
 
 export async function POST(req: NextRequest) {
-  const { name, phone, email, address, jsongpt_text } = await req.json();
+  const {
+    name,
+    phone,
+    email,
+    address,
+    jsongpt_text,
+    process_id, // Incluye process_id en el cuerpo de la solicitud para asociar el proceso.
+    technical_skills,
+    soft_skills,
+    client_comments,
+    match_percent,
+    interview_questions,
+  } = await req.json();
 
   try {
-
 
     const candidate = await prisma.candidates.create({
       data: {
@@ -19,9 +30,32 @@ export async function POST(req: NextRequest) {
         jsongpt_text,
       },
     });
-    return NextResponse.json(candidate, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
+
+    let candidateProcess = null;
+    if (process_id) {
+      candidateProcess = await prisma.candidate_process.create({
+        data: {
+          candidate_id: candidate.id,
+          process_id,
+          technical_skills,
+          soft_skills,
+          client_comments,
+          match_percent,
+          interview_questions,
+        },
+      });
+    }
+    
+    return NextResponse.json({
+      candidate,
+      candidateProcess,
+      message: "Candidato y relación con el proceso creados exitosamente",
+    }, { status: 201 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: `Error al crear candidato o asociarlo al proceso: ${error.message}` }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'Unknown error occurred' }, { status: 500 });
   }
 }
 
