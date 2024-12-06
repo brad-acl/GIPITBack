@@ -44,18 +44,16 @@ export function middleware(req: NextRequest) {
 
   // Configuración de CORS
   const origin = req.headers.get("origin");
-  const allowedOrigins = ["http://localhost:3000","gipit-front.vercel.app"]; // Orígenes permitidos
+  const allowedOrigins = ["http://localhost:3000", "https://gipit-front.vercel.app"]; // Orígenes permitidos
 
   if (req.method === "OPTIONS") {
-    // Responde a preflight requests
-    response.headers.set(
-      "Access-Control-Allow-Origin",
-      allowedOrigins.includes(origin || "") ? origin! : "*"
-    );
-    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    response.headers.set("Access-Control-Allow-Credentials", "true");
-    return response;
+    //responde a preflights requests
+    const preflightResponse = new NextResponse(null, { status: 204 });
+    preflightResponse.headers.set("Access-Control-Allow-Origin", allowedOrigins.includes(origin || "") ? origin! : "*");
+    preflightResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    preflightResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    preflightResponse.headers.set("Access-Control-Allow-Credentials", "true");
+    return preflightResponse;
   }
 
   // Configura los encabezados de CORS para otras solicitudes
