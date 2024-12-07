@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
@@ -40,24 +40,38 @@ const prisma = new PrismaClient();
  */
 export async function POST(req: NextRequest) {
   try {
+    const {
+      benefit,
+      client_comment,
+      date,
+      eval_stack,
+      eval_comunicacion,
+      eval_motivacion,
+      eval_cumplimiento,
+      acciones_acl,
+      proyecction,
+    } = await req.json();
 
-
-    const { candidate_management_id, benefit, description, date, associated_cost } = await req.json();
-  
     const postSalesActivity = await prisma.post_sales_activities.create({
       data: {
-        candidate_management_id,
         benefit,
-        description,
+        client_comment,
         date,
-        associated_cost,
-        created_at: new Date(), 
-        updated_at: new Date(), 
+        eval_stack,
+        eval_comunicacion,
+        eval_motivacion,
+        eval_cumplimiento,
+        acciones_acl,
+        proyecction,
+        updated_at: new Date(), // Automatically update the timestamp
       },
     });
     return NextResponse.json(postSalesActivity, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: `Error creating post sales activity - ${error}` }, { status: 500 });
+    return NextResponse.json(
+      { error: `Error creating post sales activity - ${error}` },
+      { status: 500 }
+    );
   }
 }
 
@@ -74,15 +88,16 @@ export async function POST(req: NextRequest) {
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/PostSalesActivity' 
+ *                 $ref: '#/components/schemas/PostSalesActivity'
  */
 export async function GET() {
   try {
-
-
     const postSalesActivities = await prisma.post_sales_activities.findMany();
     return NextResponse.json(postSalesActivities);
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching post sales activities - ${error}` }, { status: 500 });
+    return NextResponse.json(
+      { error: `Error fetching post sales activities - ${error}` },
+      { status: 500 }
+    );
   }
 }
