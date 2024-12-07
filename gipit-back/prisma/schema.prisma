@@ -16,25 +16,27 @@ model candidate_management {
   end_date              DateTime?               @db.Date
   created_at            DateTime?               @default(now()) @db.Timestamp(6)
   updated_at            DateTime?               @default(now()) @db.Timestamp(6)
+  position_id           Int?
   candidates            candidates?             @relation(fields: [candidate_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   management            management?             @relation(fields: [management_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  position              position?               @relation(fields: [position_id], references: [id], onUpdate: NoAction, map: "fk_position_candidate_management")
   post_sales_activities post_sales_activities[]
 }
 
 model candidate_process {
-  id               Int                @id @default(autoincrement())
-  candidate_id     Int
-  process_id       Int
-  created_at       DateTime?          @default(now()) @db.Timestamp(6)
-  updated_at       DateTime?          @default(now()) @db.Timestamp(6)
-  technical_skills String?
-  soft_skills      String?
-  client_comments  String?
-  match_percent    Int?
-  interview_questions    String?
-  candidates       candidates?       @relation(fields: [candidate_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  process          process?           @relation(fields: [process_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  comments_process comments_process[]
+  id                  Int                @id @default(autoincrement())
+  candidate_id        Int?
+  process_id          Int?
+  created_at          DateTime?          @default(now()) @db.Timestamp(6)
+  updated_at          DateTime?          @default(now()) @db.Timestamp(6)
+  technical_skills    String?
+  soft_skills         String?
+  client_comments     String?
+  match_percent       Decimal?           @db.Decimal(5, 2)
+  interview_questions String?
+  candidates          candidates?        @relation(fields: [candidate_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  process             process?           @relation(fields: [process_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  comments_process    comments_process[]
 }
 
 model candidates {
@@ -61,7 +63,7 @@ model comments_process {
 model company {
   id          Int          @id @default(autoincrement())
   name        String       @db.VarChar(255)
-  logo        String?      @db.VarChar(255)
+  logo        Bytes?
   description String?
   created_at  DateTime?    @default(now()) @db.Timestamp(6)
   updated_at  DateTime?    @default(now()) @db.Timestamp(6)
@@ -85,11 +87,16 @@ model post_sales_activities {
   id                      Int                   @id @default(autoincrement())
   candidate_management_id Int?
   benefit                 String?
-  description             String?
+  client_comment          String?
   date                    DateTime?             @db.Date
-  associated_cost         Decimal?              @db.Decimal(10, 2)
   created_at              DateTime?             @default(now()) @db.Timestamp(6)
   updated_at              DateTime?             @default(now()) @db.Timestamp(6)
+  eval_stack              Boolean?              @default(false)
+  eval_comunicacion       Int?
+  eval_motivacion         Int?
+  eval_cumplimiento       Int?
+  acciones_acl            String?
+  proyecction             String?
   candidate_management    candidate_management? @relation(fields: [candidate_management_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
@@ -142,7 +149,9 @@ model users {
   created_at       DateTime?          @default(now()) @db.Timestamp(6)
   updated_at       DateTime?          @default(now()) @db.Timestamp(6)
   avatar           String?            @db.VarChar(255)
+  position_id      Int?
   comments_process comments_process[]
+  position         position?          @relation(fields: [position_id], references: [id], onUpdate: NoAction, map: "fk_position")
   users_management users_management[]
 }
 
@@ -154,4 +163,27 @@ model users_management {
   updated_at    DateTime?   @default(now()) @db.Timestamp(6)
   management    management? @relation(fields: [management_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   users         users?      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model migrate {
+  field1 String?   @db.VarChar(100)
+  field2 DateTime? @db.Date
+  field3 String?   @db.VarChar(100)
+  field4 String?   @db.VarChar(100)
+  field5 String?   @db.VarChar(100)
+  field6 String?   @db.VarChar(100)
+  field7 String?   @db.VarChar(100)
+
+  @@ignore
+}
+
+model position {
+  id                   Int                    @id @default(autoincrement())
+  nombre               String                 @db.VarChar(255)
+  description          String?
+  createdat            DateTime?              @default(now()) @db.Timestamp(6)
+  updatedat            DateTime?              @default(now()) @db.Timestamp(6)
+  candidate_management candidate_management[]
+  users                users[]
 }
