@@ -3,26 +3,25 @@ import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
+export async function OPTIONS() {
+  const response = new NextResponse(null, { status: 204 });
+  response.headers.set("Access-Control-Allow-Origin", "http://localhost:3000");
+  response.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  return response;
+}
+
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
   const { id } = params;
-
-  if (req.method === "OPTIONS") {
-    // Manejo de preflight request
-    const response = new Response(null, { status: 204 });
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
-    );
-    response.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
-    return response;
-  }
 
   try {
     const company = await prisma.company.findUnique({
@@ -30,57 +29,45 @@ export async function GET(
     });
 
     if (!company) {
-      const notFoundResponse = NextResponse.json(
+      const response = NextResponse.json(
         { error: "Company not found" },
         { status: 404 }
       );
-      // Configurar encabezados CORS en caso de error
-      notFoundResponse.headers.set("Access-Control-Allow-Origin", "*");
-      notFoundResponse.headers.set(
-        "Access-Control-Allow-Methods",
-        "GET, POST, PUT, DELETE, OPTIONS"
+      response.headers.set(
+        "Access-Control-Allow-Origin",
+        "http://localhost:3000"
       );
-      notFoundResponse.headers.set(
-        "Access-Control-Allow-Headers",
-        "Content-Type, Authorization"
-      );
-      return notFoundResponse;
+      return response;
     }
 
     const response = NextResponse.json(company, { status: 200 });
-
-    // Configurar encabezados CORS en caso de éxito
-    response.headers.set("Access-Control-Allow-Origin", "*");
     response.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
+      "Access-Control-Allow-Origin",
+      "http://localhost:3000"
     );
-    response.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
-
     return response;
   } catch (error) {
-    console.error("Error fetching company:", error);
-
-    const errorResponse = NextResponse.json(
-      { error: `Error fetching company: ${error}` },
-      { status: 500 }
-    );
-
-    // Configurar encabezados CORS también en caso de error
-    errorResponse.headers.set("Access-Control-Allow-Origin", "*");
-    errorResponse.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
-    );
-    errorResponse.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
-
-    return errorResponse;
+    let response;
+    if (error instanceof Error) {
+      response = NextResponse.json(
+        { error: `Error fetching company: ${error.message}` },
+        { status: 500 }
+      );
+      response.headers.set(
+        "Access-Control-Allow-Origin",
+        "http://localhost:3000"
+      );
+    } else {
+      response = NextResponse.json(
+        { error: `Error fetching company: ${error}` },
+        { status: 500 }
+      );
+      response.headers.set(
+        "Access-Control-Allow-Origin",
+        "http://localhost:3000"
+      );
+    }
+    return response;
   }
 }
 
