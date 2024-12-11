@@ -63,10 +63,10 @@ model comments_process {
 model company {
   id          Int          @id @default(autoincrement())
   name        String       @db.VarChar(255)
-  logo        Bytes?
   description String?
   created_at  DateTime?    @default(now()) @db.Timestamp(6)
   updated_at  DateTime?    @default(now()) @db.Timestamp(6)
+  logo        Bytes?
   management  management[]
   process     process[]
 }

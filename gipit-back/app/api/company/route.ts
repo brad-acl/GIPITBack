@@ -5,7 +5,11 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const companies = await prisma.company.findMany();
+    const companies = await prisma.company.findMany({
+      orderBy: {
+        name: "asc", // Ordenar por nombre en orden ascendente (A-Z)
+      },
+    });
     return NextResponse.json(companies, { status: 200 });
   } catch (error) {
     return NextResponse.json(
