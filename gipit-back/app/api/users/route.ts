@@ -1,8 +1,5 @@
-
-
-import {  NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
 //  * @swagger
 //  * /users:
@@ -45,8 +42,6 @@ import { PrismaClient } from '@prisma/client';
 //  *                 $ref: '#/components/schemas/User'
 //  */
 
-
-
 const prisma = new PrismaClient();
 
 // export async function POST(req: NextRequest) {
@@ -64,14 +59,12 @@ const prisma = new PrismaClient();
 
 //     // Genera un token para el nuevo usuario basado en su rol
 //     const token = jwt.sign({ userId: user.id, role: user.role }, jwtSecret, { expiresIn: '1h' });
-    
+
 //     return NextResponse.json({ ...user, token }, { status: 201 });
 //   } catch (error) {
 //     return NextResponse.json({ error: `Error creating user - ${error}` }, { status: 500 });
 //   }
 // }
-
-
 
 // GET: Obtener todos los usuarios
 export async function GET() {
@@ -79,7 +72,10 @@ export async function GET() {
     const users = await prisma.users.findMany();
     return NextResponse.json(users, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching users: ${error}` }, { status: 500 });
+    return NextResponse.json(
+      { error: `Error fetching users: ${error}` },
+      { status: 500 }
+    );
   }
 }
 
@@ -93,7 +89,7 @@ export async function POST(request: Request) {
       name: data.name,
       email: data.email,
       role: data.role,
-      avatar: data.avatar,
+      position: data.position,
     };
 
     const newUser = await prisma.users.create({
@@ -102,6 +98,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newUser, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: `Error creating user: ${error}` }, { status: 500 });
+    return NextResponse.json(
+      { error: `Error creating user: ${error}` },
+      { status: 500 }
+    );
   }
 }
