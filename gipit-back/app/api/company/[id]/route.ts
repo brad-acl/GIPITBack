@@ -4,17 +4,7 @@ import { NextResponse } from "next/server";
 const prisma = new PrismaClient();
 
 export async function OPTIONS() {
-  const response = new NextResponse(null, { status: 204 });
-  response.headers.set("Access-Control-Allow-Origin", "http://localhost:3000");
-  response.headers.set(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS"
-  );
-  response.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
-  return response;
+  return new NextResponse(null, { status: 204 });
 }
 
 export async function GET(
@@ -29,45 +19,22 @@ export async function GET(
     });
 
     if (!company) {
-      const response = NextResponse.json(
-        { error: "Company not found" },
-        { status: 404 }
-      );
-      response.headers.set(
-        "Access-Control-Allow-Origin",
-        "http://localhost:3000"
-      );
-      return response;
+      return NextResponse.json({ error: "Company not found" }, { status: 404 });
     }
 
-    const response = NextResponse.json(company, { status: 200 });
-    response.headers.set(
-      "Access-Control-Allow-Origin",
-      "http://localhost:3000"
-    );
-    return response;
+    return NextResponse.json(company, { status: 200 });
   } catch (error) {
-    let response;
     if (error instanceof Error) {
-      response = NextResponse.json(
+      return NextResponse.json(
         { error: `Error fetching company: ${error.message}` },
         { status: 500 }
       );
-      response.headers.set(
-        "Access-Control-Allow-Origin",
-        "http://localhost:3000"
-      );
     } else {
-      response = NextResponse.json(
+      return NextResponse.json(
         { error: `Error fetching company: ${error}` },
         { status: 500 }
       );
-      response.headers.set(
-        "Access-Control-Allow-Origin",
-        "http://localhost:3000"
-      );
     }
-    return response;
   }
 }
 
@@ -103,52 +70,29 @@ export async function PUT(
       data: filteredData,
     });
 
-    const response = NextResponse.json(updatedCompany, { status: 200 });
-
-    // Configurar los encabezados CORS
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
-    );
-    response.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
-
-    return response;
+    return NextResponse.json(updatedCompany, { status: 200 });
   } catch (error) {
     console.error("Error updating company:", error);
 
-    const errorResponse = NextResponse.json(
+    return NextResponse.json(
       { error: `Error updating company: ${error}` },
       { status: 500 }
     );
-
-    // Configurar los encabezados CORS también en caso de error
-    errorResponse.headers.set("Access-Control-Allow-Origin", "*");
-    errorResponse.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
-    );
-    errorResponse.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
-
-    return errorResponse;
   }
 }
+
 // DELETE: Eliminar una compañía por ID
 export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }
 ) {
   const { id } = params;
+
   try {
     await prisma.company.delete({
       where: { id: parseInt(id) },
     });
+
     return NextResponse.json(
       { message: "Company deleted successfully" },
       { status: 200 }

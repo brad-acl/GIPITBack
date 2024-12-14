@@ -16,10 +16,9 @@ model candidate_management {
   end_date              DateTime?               @db.Date
   created_at            DateTime?               @default(now()) @db.Timestamp(6)
   updated_at            DateTime?               @default(now()) @db.Timestamp(6)
-  position_id           Int?
+  position              String?
   candidates            candidates?             @relation(fields: [candidate_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   management            management?             @relation(fields: [management_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  position              position?               @relation(fields: [position_id], references: [id], onUpdate: NoAction, map: "fk_position_candidate_management")
   post_sales_activities post_sales_activities[]
 }
 
@@ -145,13 +144,12 @@ model users {
   id               Int                @id @default(autoincrement())
   name             String             @db.VarChar(255)
   email            String             @unique @db.VarChar(255)
-  role             String?            @db.VarChar(50)
+  position         String?            @db.VarChar(255)
   created_at       DateTime?          @default(now()) @db.Timestamp(6)
   updated_at       DateTime?          @default(now()) @db.Timestamp(6)
-  avatar           String?            @db.VarChar(255)
-  position_id      Int?
+  role_id          Int?
   comments_process comments_process[]
-  position         position?          @relation(fields: [position_id], references: [id], onUpdate: NoAction, map: "fk_position")
+  roles            roles?              @relation(fields: [role_id], references: [id], onUpdate: NoAction)
   users_management users_management[]
 }
 
@@ -178,12 +176,10 @@ model migrate {
   @@ignore
 }
 
-model position {
+model roles {
   id                   Int                    @id @default(autoincrement())
   nombre               String                 @db.VarChar(255)
-  description          String?
   createdat            DateTime?              @default(now()) @db.Timestamp(6)
   updatedat            DateTime?              @default(now()) @db.Timestamp(6)
-  candidate_management candidate_management[]
   users                users[]
 }

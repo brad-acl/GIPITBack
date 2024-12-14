@@ -1,13 +1,12 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client'; 
-
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-
-
-
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   const { id } = params; // Este id es el management_id
 
   try {
@@ -23,14 +22,21 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     if (!userManagements || userManagements.length === 0) {
       const response = NextResponse.json([], { status: 200 });
       response.headers.set("Access-Control-Allow-Origin", "*");
-      response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-      response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      response.headers.set(
+        "Access-Control-Allow-Methods",
+        "GET, POST, PUT, DELETE, OPTIONS"
+      );
+      response.headers.set(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization"
+      );
       return response;
     }
 
     // Mapea los registros para devolver solo los datos relevantes
     const integrantes = userManagements.map((um) => ({
-      id: um.id, // ID del registro en users_management
+      id_register: um.id, // ID del registro en users_management
+      user_id: um.user_id || "Sin Id",
       name: um.users?.name || "Usuario Desconocido",
       email: um.users?.email || "No disponible",
       role: um.users?.role || "No asignado",
@@ -39,26 +45,42 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     const response = NextResponse.json(integrantes, { status: 200 });
     response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    response.headers.set(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    response.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
     return response;
   } catch (error) {
     console.error("Error fetching user management:", error);
-    const errorResponse = NextResponse.json({ error: `Error fetching user management: ${error}` }, { status: 500 });
+    const errorResponse = NextResponse.json(
+      { error: `Error fetching user management: ${error}` },
+      { status: 500 }
+    );
     errorResponse.headers.set("Access-Control-Allow-Origin", "*");
-    errorResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    errorResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    errorResponse.headers.set(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    errorResponse.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
     return errorResponse;
   }
 }
 
-
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   const { id } = params;
   try {
     const data = await req.json();
 
-    
     const filteredData = {
       user_id: data.user_id,
       management_id: data.management_id,
@@ -71,19 +93,30 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
     return NextResponse.json(updatedUserManagement, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: `Error updating user management: ${error}` }, { status: 500 });
+    return NextResponse.json(
+      { error: `Error updating user management: ${error}` },
+      { status: 500 }
+    );
   }
 }
 
-
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   const { id } = params;
   try {
     await prisma.users_management.delete({
       where: { id: parseInt(id) },
     });
-    return NextResponse.json({ message: "User management deleted successfully" }, { status: 200 });
+    return NextResponse.json(
+      { message: "User management deleted successfully" },
+      { status: 200 }
+    );
   } catch (error) {
-    return NextResponse.json({ error: `Error deleting user management: ${error}` }, { status: 500 });
+    return NextResponse.json(
+      { error: `Error deleting user management: ${error}` },
+      { status: 500 }
+    );
   }
 }
