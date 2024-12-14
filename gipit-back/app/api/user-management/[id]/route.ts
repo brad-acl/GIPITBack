@@ -39,7 +39,7 @@ export async function GET(
       user_id: um.user_id || "Sin Id",
       name: um.users?.name || "Usuario Desconocido",
       email: um.users?.email || "No disponible",
-      role: um.users?.role || "No asignado",
+      role: um.users?.role_id || "No asignado",
       management_id: um.management_id,
     }));
 

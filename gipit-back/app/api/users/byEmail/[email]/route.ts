@@ -11,6 +11,9 @@ export async function GET(
   try {
     const user = await prisma.users.findUnique({
       where: { email },
+      include: {
+        roles: true,
+      },
     });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });

@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     const filteredData = {
       name: data.name,
       email: data.email,
-      role: data.role,
+      role_id: data.role,
       position: data.position,
     };
 
