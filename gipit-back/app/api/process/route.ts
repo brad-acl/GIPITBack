@@ -20,7 +20,12 @@ export async function GET(req: NextRequest) {
       skip: (page - 1) * pageSize,
       take: pageSize,
       include: {
-        candidate_process: true, // Incluir la relación con candidatos
+        _count: {
+          select: { candidate_process: true }, // Cuenta la relación candidate_process
+        },
+        candidate_process: {
+          select: { candidate_id: true }, // Opcional: selecciona solo IDs si los necesitas
+        },
       },
     });
 
@@ -30,15 +35,20 @@ export async function GET(req: NextRequest) {
     const batch = processes.map((process) => ({
       id: process.id,
       name: process.job_offer,
+      jobOfferDescription: process.job_offer_description,
       startAt: process.opened_at ? new Date(process.opened_at).toLocaleDateString() : '',
       endAt: process.closed_at ? new Date(process.closed_at).toLocaleDateString() : null,
       preFiltered: process.pre_filtered ? 1 : 0,
-      candidates: process.candidate_process ? process.candidate_process.length : 0,
-      state: process.status ?? 'pending',
+      candidates: process._count.candidate_process || 0,
+      status: process.status ?? "Pendiente",
+      stage: "Entrevistas(default)", // Valor predeterminado para 'stage'
+      candidatesIds: process.candidate_process.map((cp) => cp.candidate_id) ?? [], // IDs de candidatos
     }));
+
 
     console.log(`Devolviendo ${processes.length} procesos para la página ${page}`);
 
+    console.log('Devolviendo el back fetch process:', batch);
     return NextResponse.json({
       total,
       batch,
