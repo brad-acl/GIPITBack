@@ -40,7 +40,7 @@ export async function GET(req: NextRequest, { params }: { params: { process_id: 
       return NextResponse.json({ error: 'Proceso no encontrado.' }, { status: 404 });
     }
 
-    // Transformar los datos para que incluyan los detalles de los candidatos y el porcentaje de compatibilidad (`match_percent`)
+    // Transformar los datos para que incluyan los detalles de los candidatos, el porcentaje de compatibilidad (`match_percent`) y total_exp
     const response = {
       id: proceso.id,
       name: proceso.job_offer,

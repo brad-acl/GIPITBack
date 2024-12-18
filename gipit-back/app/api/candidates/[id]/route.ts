@@ -84,6 +84,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       clientNote: {
         comment: candidateProcess?.client_comments ?? '',
       },
+      total_experience: candidateProcess?.total_experience ?? ''
     };
 
     return NextResponse.json(response);

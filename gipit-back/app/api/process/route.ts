@@ -36,12 +36,12 @@ export async function GET(req: NextRequest) {
       id: process.id,
       name: process.job_offer,
       jobOfferDescription: process.job_offer_description,
-      startAt: process.opened_at ? new Date(process.opened_at).toLocaleDateString() : '',
-      endAt: process.closed_at ? new Date(process.closed_at).toLocaleDateString() : null,
+      startAt: process?.opened_at && process?.opened_at !== null ? new Date(process.opened_at).toLocaleDateString() : null,
+      endAt: process?.closed_at && process?.closed_at !== null ? new Date(process.closed_at).toLocaleDateString() : null,
       preFiltered: process.pre_filtered ? 1 : 0,
       candidates: process._count.candidate_process || 0,
       status: process.status ?? "Pendiente",
-      stage: "Entrevistas(default)", // Valor predeterminado para 'stage'
+      stage: "Entrevistas", // Valor predeterminado para 'stage'
       candidatesIds: process.candidate_process.map((cp) => cp.candidate_id) ?? [], // IDs de candidatos
     }));
 
