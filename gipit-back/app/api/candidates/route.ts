@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     client_comments,
     match_percent,
     total_experience,
+    stage,
     interview_questions,
   } = await req.json();
 
@@ -43,7 +44,8 @@ export async function POST(req: NextRequest) {
           client_comments,
           match_percent,
           interview_questions,
-          total_experience
+          total_experience,
+          stage
         },
       });
     }

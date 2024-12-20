@@ -36,7 +36,8 @@ model candidate_process {
   candidates          candidates?        @relation(fields: [candidate_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   process             process?           @relation(fields: [process_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   comments_process    comments_process[]
-  total_experience    Int?               @default(0)      // Nuevo campo agregado
+  total_experience    Int?               @default(0)      // años de experiencia aproximados del candidato
+  stage               String             @default("entrevistas") // entrevistas / descartado / seleccionado
 }
 
 model candidates {
