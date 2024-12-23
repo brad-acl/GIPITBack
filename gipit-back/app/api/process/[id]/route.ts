@@ -13,6 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       include: {
         candidate_process: {
           select: {
+            stage: true, // Selecciona la etapa del candidato
             match_percent: true, // Selecciona el match_percent del candidato
             candidates: {
               select: {
@@ -42,6 +43,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       address: cp.candidates?.address,
       jsongpt_text: cp.candidates?.jsongpt_text,
       match: cp.match_percent ?? 0, // Añadir el porcentaje de compatibilidad desde candidate_process
+      stage: cp.stage, // Etapa del candidato
     }));
 
     // Crear la respuesta combinada del proceso y los candidatos
@@ -49,7 +51,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       processId: process.id,
       jobOffer: process.job_offer,
       jobOfferDescription: process.job_offer_description,
-      stage: 'Entrevistas',
+      stage: "Entrevistas",
       candidates,
     });
   } catch (error) {
