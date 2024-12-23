@@ -23,11 +23,11 @@ export async function GET() {
       where: {
         status: {
           equals: 'cerrado',
-          mode: 'insensitive'
+          mode: 'insensitive',
         },
         closed_at: {
-          not: null
-        }
+          not: null,
+        },
       },
     });
 
