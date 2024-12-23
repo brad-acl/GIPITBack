@@ -24,15 +24,30 @@ export async function GET(req: NextRequest) {
             pre_invoice_items: true,
           },
         },
+        pre_invoice_items: {
+          include: {
+            candidates: true,
+          },
+        },
       },
     });
 
     const total = await prisma.pre_invoices.count();
+    const formattedPreInvoices = preInvoices.map((preInvoice) => {
+      const candidates = preInvoice.pre_invoice_items.flatMap(item => item.candidates || []);
+      const professionals = candidates.map(candidate => candidate.name).slice(0, 3);
+      const additionalCount = candidates.length - 3;
 
-    const formattedPreInvoices = preInvoices.map((preInvoice) => ({
-      ...preInvoice,
-      cantidad: preInvoice._count.pre_invoice_items || 0, 
-    }));
+      const professionalsDisplay = additionalCount > 0 
+        ? `${professionals.join(', ')} y otros ${additionalCount}` 
+        : professionals.join(', ');
+
+      return {
+        ...preInvoice,
+        professionals: professionalsDisplay,
+        cantidad: preInvoice._count.pre_invoice_items || 0,
+      };
+    });
 
     return NextResponse.json({
       total, 

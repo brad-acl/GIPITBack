@@ -14,6 +14,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     const preInvoice = await prisma.pre_invoices.findUnique({
       where: { id: Number(id) },
+      include: {
+        pre_invoice_items: {
+          include: {
+            candidates: true,
+          },
+        },
+      },
     });
 
     if (!preInvoice) {
