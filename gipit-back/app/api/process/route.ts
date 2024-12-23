@@ -3,6 +3,113 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /process:
+ *   get:
+ *     summary: Obtener lista de todos los procesos
+ *     description: Retorna una lista paginada de todos los procesos con sus candidatos asociados
+ *     tags: [Procesos]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Número de página para la paginación
+ *       - in: query
+ *         name: company_id
+ *         schema:
+ *           type: integer
+ *         description: ID de la compañía para filtrar procesos
+ *     responses:
+ *       200:
+ *         description: Lista de procesos obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                 batch:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       jobOfferDescription:
+ *                         type: string
+ *                       startAt:
+ *                         type: string
+ *                       endAt:
+ *                         type: string
+ *                       preFiltered:
+ *                         type: integer
+ *                       candidates:
+ *                         type: integer
+ *                       status:
+ *                         type: string
+ *                       stage:
+ *                         type: string
+ *                       candidatesIds:
+ *                         type: array
+ *                         items:
+ *                           type: integer
+ *       400:
+ *         description: Parámetros inválidos
+ *       500:
+ *         description: Error del servidor
+ * 
+ *   post:
+ *     summary: Crear un nuevo proceso
+ *     description: Crea un nuevo proceso de selección
+ *     tags: [Procesos]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - job_offer
+ *               - company_id
+ *             properties:
+ *               job_offer:
+ *                 type: string
+ *                 description: Título de la oferta de trabajo
+ *               job_offer_description:
+ *                 type: string
+ *                 description: Descripción detallada de la oferta
+ *               company_id:
+ *                 type: integer
+ *                 description: ID de la compañía asociada
+ *               opened_at:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Fecha de apertura del proceso
+ *               closed_at:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Fecha de cierre del proceso
+ *               pre_filtered:
+ *                 type: boolean
+ *                 description: Indica si el proceso está pre-filtrado
+ *               status:
+ *                 type: string
+ *                 description: Estado actual del proceso
+ *     responses:
+ *       201:
+ *         description: Proceso creado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Process'
+ *       500:
+ *         description: Error del servidor
+ */
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -59,10 +166,21 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const data = await request.json();
-    console.log("Datos recibidos del frontend:", data);
+    const data = await req.json();
+
+    // Verificar si la compañía existe antes de crear el proceso
+    const companyExists = await prisma.company.findUnique({
+      where: { id: data.company_id }
+    });
+
+    if (!companyExists) {
+      return NextResponse.json(
+        { error: `La compañía con ID ${data.company_id} no existe` },
+        { status: 404 }
+      );
+    }
 
     const filteredData = {
       job_offer: data.job_offer,
@@ -74,16 +192,16 @@ export async function POST(request: NextRequest) {
       status: data.status,
     };
 
-    console.log("Datos filtrados para Prisma:", filteredData);
-
     const newProcess = await prisma.process.create({
       data: filteredData,
     });
 
-    console.log("Nuevo proceso creado:", newProcess);
-
     return NextResponse.json(newProcess, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: `Error al postear proceso: ${error}` }, { status: 500 });
+    console.error("Error al crear proceso:", error);
+    return NextResponse.json(
+      { error: `Error al crear proceso: ${error}` },
+      { status: 500 }
+    );
   }
 }
