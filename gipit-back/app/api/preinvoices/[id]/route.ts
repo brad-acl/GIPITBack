@@ -9,9 +9,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { id } = params;
 
   try {
-
-    
-
     const preInvoice = await prisma.pre_invoices.findUnique({
       where: { id: Number(id) },
       include: {
@@ -27,7 +24,15 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Pre-invoice not found' }, { status: 404 });
     }
 
-    return NextResponse.json(preInvoice);
+    // Procesar los detalles de la factura y los candidatos
+    const candidates = preInvoice.pre_invoice_items.flatMap(item => item.candidates);
+    console.log('Detalles de la factura:', preInvoice);
+    console.log('Candidatos asociados:', candidates);
+
+    return NextResponse.json({
+      preInvoice,
+      candidates,
+    });
   } catch (error) {
     return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
   }
