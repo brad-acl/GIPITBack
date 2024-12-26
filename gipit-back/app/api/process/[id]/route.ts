@@ -130,11 +130,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         },
         candidate_process: {
           select: {
-            match_percent: true,
-            technical_skills: true,
-            soft_skills: true,
-            client_comments: true,
-            interview_questions: true,
+            match_percent: true, // Selecciona el match_percent del candidato
             candidates: {
               select: {
                 id: true,
@@ -162,11 +158,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       phone: cp.candidates?.phone,
       address: cp.candidates?.address,
       jsongpt_text: cp.candidates?.jsongpt_text,
-      match: cp.match_percent ?? 0,
-      technical_skills: cp.technical_skills,
-      soft_skills: cp.soft_skills,
-      client_comments: cp.client_comments,
-      interview_questions: cp.interview_questions,
+      match: cp.match_percent ?? 0, // Añadir el porcentaje de compatibilidad desde candidate_process
     }));
 
     // Crear la respuesta combinada del proceso y los candidatos
@@ -175,10 +167,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       companyName: process.company?.name ?? 'Sin compañía',
       jobOffer: process.job_offer,
       jobOfferDescription: process.job_offer_description,
-      startAt: process.opened_at,
-      endAt: process.closed_at,
-      preFiltered: process.pre_filtered,
-      status: process.status,
+      stage: 'Entrevistas',
       candidates,
     });
   } catch (error) {

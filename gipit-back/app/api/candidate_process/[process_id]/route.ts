@@ -54,6 +54,7 @@ export async function GET(req: NextRequest, { params }: { params: { process_id: 
         email: cp.candidates?.email,
         address: cp.candidates?.address,
         match: cp.match_percent ?? 0, // Añadir el porcentaje de compatibilidad desde candidate_process
+        stage: cp.stage ?? 'entrevistas'
       })),
       state: proceso.status ?? 'pending',
     };
@@ -102,60 +103,60 @@ export async function GET(req: NextRequest, { params }: { params: { process_id: 
 
 
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
-  const { candidate_ids, technical_skills, soft_skills, client_comments, match_percent, interview_questions } = await req.json();
+// export async function PUTActualizarCandidateProcess(req: NextRequest, { params }: { params: { id: string } }) {
+//   const { id } = params;
+//   const { candidate_ids, technical_skills, soft_skills, client_comments, match_percent, interview_questions } = await req.json();
 
-  try {
-    const existingCandidateProcess = await prisma.candidate_process.findUnique({
-      where: { id: parseInt(id) },
-    });
+//   try {
+//     const existingCandidateProcess = await prisma.candidate_process.findUnique({
+//       where: { id: parseInt(id) },
+//     });
 
-    if (!existingCandidateProcess) {
-      return NextResponse.json({ error: 'No se encontró la asociación Candidate-Process' }, { status: 404 });
-    }
+//     if (!existingCandidateProcess) {
+//       return NextResponse.json({ error: 'No se encontró la asociación Candidate-Process' }, { status: 404 });
+//     }
 
-    const updatedCandidateProcess = await prisma.candidate_process.update({
-      where: { id: parseInt(id) },
-      data: { technical_skills, soft_skills, client_comments, match_percent, interview_questions },
-    });
+//     const updatedCandidateProcess = await prisma.candidate_process.update({
+//       where: { id: parseInt(id) },
+//       data: { technical_skills, soft_skills, client_comments, match_percent, interview_questions },
+//     });
 
-    // Manejar la adición de nuevos candidatos si se proporcionan
-    if (candidate_ids && candidate_ids.length > 0) {
-      const addedCandidates = await Promise.all(
-        candidate_ids.map(async (candidateId: number) => {
-          const candidate = await prisma.candidates.findUnique({
-            where: { id: candidateId },
-          });
+//     // Manejar la adición de nuevos candidatos si se proporcionan
+//     if (candidate_ids && candidate_ids.length > 0) {
+//       const addedCandidates = await Promise.all(
+//         candidate_ids.map(async (candidateId: number) => {
+//           const candidate = await prisma.candidates.findUnique({
+//             where: { id: candidateId },
+//           });
 
-          if (!candidate) {
-            throw new Error(`Candidato con ID ${candidateId} no encontrado`);
-          }
+//           if (!candidate) {
+//             throw new Error(`Candidato con ID ${candidateId} no encontrado`);
+//           }
 
-          return prisma.candidate_process.create({
-            data: {
-              candidate_id: candidateId,
-              process_id: parseInt(id),
-            },
-          });
-        })
-      );
+//           return prisma.candidate_process.create({
+//             data: {
+//               candidate_id: candidateId,
+//               process_id: parseInt(id),
+//             },
+//           });
+//         })
+//       );
 
-      return NextResponse.json({
-        message: 'Candidate-Process actualizado y candidatos agregados con éxito',
-        updatedCandidateProcess,
-        addedCandidates,
-      });
-    } else {
-      return NextResponse.json({
-        message: 'Candidate-Process actualizado con éxito',
-        updatedCandidateProcess,
-      });
-    }
-  } catch (error) {
-    return NextResponse.json({ error: `Error al actualizar candidate_process: ${error}` }, { status: 500 });
-  }
-}
+//       return NextResponse.json({
+//         message: 'Candidate-Process actualizado y candidatos agregados con éxito',
+//         updatedCandidateProcess,
+//         addedCandidates,
+//       });
+//     } else {
+//       return NextResponse.json({
+//         message: 'Candidate-Process actualizado con éxito',
+//         updatedCandidateProcess,
+//       });
+//     }
+//   } catch (error) {
+//     return NextResponse.json({ error: `Error al actualizar candidate_process: ${error}` }, { status: 500 });
+//   }
+// }
 
 export async function DELETE(req: NextRequest, { params }: { params: { process_id: string } }) {
   const { process_id } = params;
@@ -175,5 +176,162 @@ export async function DELETE(req: NextRequest, { params }: { params: { process_i
       return NextResponse.json({ error: `Error - ${error.message}` }, { status: 500 });
     }
     return NextResponse.json({ error: 'Unknown error occurred' }, { status: 500 });
+  }
+}
+
+// DESCALIFICAR CANDIDATO
+// export async function PUTDescalificarCandidatos(req: NextRequest, { params }: { params: { process_id: string } }) {
+//   const { process_id } = params;
+//     const { candidateId } = await req.json();
+  
+//     if (!candidateId) {
+//       return NextResponse.json({ error: 'Missing candidateId parameter' }, { status: 400 });
+//     }
+  
+//     try {
+//       // Convertir process_id a número
+//       const processIdNumber = parseInt(process_id, 10);
+  
+//       // Actualizar el campo stage en la tabla candidate_process a "descartado"
+//       await prisma.candidate_process.updateMany({
+//         where: {
+//           candidate_id: candidateId,
+//           process_id: processIdNumber,
+//         },
+//         data: { stage: "descartado" },
+//       });
+  
+//       return NextResponse.json({ message: 'Candidato descalificado con éxito' });
+//     } catch (error) {
+//       return NextResponse.json({ error: `Error al descalificar el candidato: ${error}` }, { status: 500 });
+//     }
+//   }
+
+  // SELECCIONAR CANDIDATO
+// export async function PUTseleccionarCandidato(req: NextRequest, { params }: { params: { process_id: string } }) {
+//   const { process_id } = params;
+//   const { candidateId } = await req.json();
+
+//   if (!candidateId) {
+//     return NextResponse.json({ error: 'Missing candidateId parameter' }, { status: 400 });
+//   }
+
+//   try {
+//     // Convertir process_id a número
+//     const processIdNumber = parseInt(process_id, 10);
+
+//     // Actualizar el campo stage en la tabla candidate_process a "descartado"
+//     await prisma.candidate_process.updateMany({
+//       where: {
+//         candidate_id: candidateId,
+//         process_id: processIdNumber,
+//       },
+//       data: { stage: "seleccionado" },
+//     });
+
+//     return NextResponse.json({ message: 'Candidato descalificado con éxito' });
+//   } catch (error) {
+//     return NextResponse.json({ error: `Error al descalificar el candidato: ${error}` }, { status: 500 });
+//   }
+// }
+
+
+// Modificaciones de CANDIDATO EN PROCESO / seleccionar / descartar
+export async function PUT(req: NextRequest, { params }: { params: { process_id: string } }) {
+  const { process_id } = params;
+  const { action, candidateId, data } = await req.json();
+
+  if (!action || !candidateId) {
+    return NextResponse.json({ error: 'Los parámetros "action" y "candidateId" son requeridos' }, { status: 400 });
+  }
+
+  try {
+    const processIdNumber = parseInt(process_id, 10);
+    if (isNaN(processIdNumber)) {
+      return NextResponse.json({ error: 'El parámetro "process_id" debe ser un número válido' }, { status: 400 });
+    }
+
+    switch (action) {
+      case 'edit': {
+        // Aquí se reutiliza tu método PUTActualizarCandidateProcess
+        const { candidate_ids, technical_skills, soft_skills, client_comments, match_percent, interview_questions } = data;
+
+        const existingCandidateProcess = await prisma.candidate_process.findUnique({
+          where: { id: parseInt(candidateId) },
+        });
+
+        if (!existingCandidateProcess) {
+          return NextResponse.json({ error: 'No se encontró la asociación Candidate-Process' }, { status: 404 });
+        }
+
+        const updatedCandidateProcess = await prisma.candidate_process.update({
+          where: { id: parseInt(candidateId) },
+          data: { technical_skills, soft_skills, client_comments, match_percent, interview_questions },
+        });
+
+        // Manejo de candidatos adicionales
+        if (candidate_ids && candidate_ids.length > 0) {
+          const addedCandidates = await Promise.all(
+            candidate_ids.map(async (candidateId: number) => {
+              const candidate = await prisma.candidates.findUnique({
+                where: { id: candidateId },
+              });
+
+              if (!candidate) {
+                throw new Error(`Candidato con ID ${candidateId} no encontrado`);
+              }
+
+              return prisma.candidate_process.create({
+                data: {
+                  candidate_id: candidateId,
+                  process_id: processIdNumber,
+                },
+              });
+            })
+          );
+
+          return NextResponse.json({
+            message: 'Candidate-Process actualizado y candidatos agregados con éxito',
+            updatedCandidateProcess,
+            addedCandidates,
+          });
+        } else {
+          return NextResponse.json({
+            message: 'Candidate-Process actualizado con éxito',
+            updatedCandidateProcess,
+          });
+        }
+      }
+
+      case 'disqualify': {
+        await prisma.candidate_process.updateMany({
+          where: {
+            candidate_id: candidateId,
+            process_id: processIdNumber,
+          },
+          data: { stage: 'descartado' },
+        });
+
+        return NextResponse.json({ message: 'Candidato descalificado con éxito' });
+      }
+
+      case 'select': {
+        await prisma.candidate_process.updateMany({
+          where: {
+            candidate_id: candidateId,
+            process_id: processIdNumber,
+          },
+          data: { stage: 'seleccionado' },
+        });
+
+        return NextResponse.json({ message: 'Candidato seleccionado con éxito' });
+      }
+
+      default:
+        return NextResponse.json({ error: `Acción no reconocida: ${action}` }, { status: 400 });
+    }
+  } catch (error) {
+    console.error(`Error en la operación "${action}":`, error);
+    return NextResponse.json({ error: `Error en la operación "${action}" - ${error}` }, { status: 500 });
   }
 }
