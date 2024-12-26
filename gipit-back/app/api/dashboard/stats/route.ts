@@ -23,18 +23,21 @@ export async function GET() {
       where: {
         status: {
           equals: 'cerrado',
-          mode: 'insensitive'
+          mode: 'insensitive',
         },
         closed_at: {
-          not: null
-        }
+          not: null,
+        },
       },
     });
 
     // Obtener procesos cerrados del último trimestre
     const cerradostrimestreCount = await prisma.process.count({
       where: {
-        status: 'cerrado',
+        status: {
+          equals: 'cerrado',
+          mode: 'insensitive' 
+        },
         closed_at: {
           gte: threeMonthsAgo,
         },
@@ -46,7 +49,10 @@ export async function GET() {
       where: {
         candidate_management: {
           some: {
-            status: 'activo',
+            status: {
+              equals: 'activo',
+              mode: 'insensitive'
+            },
           },
         },
       },
