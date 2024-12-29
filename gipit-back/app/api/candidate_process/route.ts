@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
-  const { candidate_id, process_id, technical_skills, soft_skills, client_comments, match_percent, interview_questions, total_experience, stage} = await req.json();
+  const { candidate_id, process_id, technical_skills, soft_skills, client_comments, match_percent, interview_questions, stage} = await req.json();
 
   try {
     const candidateProcess = await prisma.candidate_process.create({
@@ -16,7 +16,6 @@ export async function POST(req: NextRequest) {
         client_comments,
         match_percent,
         interview_questions,
-        total_experience,
         stage // Entrevistas, Seleccionado, Descartado
       },
     });

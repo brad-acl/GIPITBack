@@ -17,6 +17,7 @@ model candidate_management {
   created_at            DateTime?               @default(now()) @db.Timestamp(6)
   updated_at            DateTime?               @default(now()) @db.Timestamp(6)
   position              String?
+  rate                  Decimal?
   candidates            candidates?             @relation(fields: [candidate_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   management            management?             @relation(fields: [management_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   post_sales_activities post_sales_activities[]
@@ -33,11 +34,10 @@ model candidate_process {
   client_comments     String?
   match_percent       Decimal?           @db.Decimal(5, 2)
   interview_questions String?
+  stage               String             @default("entrevistas")
   candidates          candidates?        @relation(fields: [candidate_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   process             process?           @relation(fields: [process_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   comments_process    comments_process[]
-  total_experience    Int?               @default(0)      // años de experiencia aproximados del candidato
-  stage               String             @default("entrevistas") // entrevistas / descartado / seleccionado
 }
 
 model candidates {
@@ -47,6 +47,7 @@ model candidates {
   email                String?                @db.VarChar(255)
   address              String?
   jsongpt_text         String?
+  total_experience     Int?                   @default(0)
   candidate_management candidate_management[]
   candidate_process    candidate_process[]
   pre_invoice_items    pre_invoice_items[]

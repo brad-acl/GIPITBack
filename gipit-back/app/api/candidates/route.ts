@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
         email,
         address,
         jsongpt_text,
+        total_experience
       },
     });
 
@@ -44,7 +45,6 @@ export async function POST(req: NextRequest) {
           client_comments,
           match_percent,
           interview_questions,
-          total_experience,
           stage
         },
       });
