@@ -315,6 +315,18 @@ export async function PUT(req: NextRequest, { params }: { params: { process_id: 
         return NextResponse.json({ message: 'Candidato descalificado con éxito' });
       }
 
+      case 'back-interview': {
+        await prisma.candidate_process.updateMany({
+          where: {
+            candidate_id: candidateId,
+            process_id: processIdNumber,
+          },
+          data: { stage: 'entrevistas' },
+        });
+
+        return NextResponse.json({ message: 'Candidato descalificado con éxito' });
+      }
+
       case 'select': {
         await prisma.candidate_process.updateMany({
           where: {
