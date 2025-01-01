@@ -37,11 +37,18 @@ export async function GET() {
       })
     ]);
 
-    const ultimosProcesos = await prisma.process.findMany({
+    const procesosCerrados = await prisma.process.findMany({
       where: {
         status: { equals: 'cerrado', mode: 'insensitive' },
         opened_at: { not: null },
-        closed_at: { not: null }
+        closed_at: { not: null },
+        AND: [
+          {
+            closed_at: {
+              lte: new Date()
+            }
+          }
+        ]
       },
       orderBy: {
         closed_at: 'desc'
@@ -59,15 +66,28 @@ export async function GET() {
       values: []
     };
 
-    ultimosProcesos.reverse().forEach(proceso => {
-      const duracion = Math.round(
-        (new Date(proceso.closed_at!).getTime() - new Date(proceso.opened_at!).getTime()) 
-        / (1000 * 60 * 60 * 24)
-      );
-      
-      historicoTiempos.labels.push(proceso.job_offer);
-      historicoTiempos.values.push(duracion);
+    let sumaDuraciones = 0;
+
+    procesosCerrados.forEach(proceso => {
+      if (proceso.opened_at && proceso.closed_at) {
+        const fechaApertura = new Date(proceso.opened_at);
+        const fechaCierre = new Date(proceso.closed_at);
+        
+        const duracion = Math.max(1, Math.round(
+          (fechaCierre.getTime() - fechaApertura.getTime()) 
+          / (1000 * 60 * 60 * 24)
+        ));
+        
+        historicoTiempos.labels.unshift(proceso.job_offer);
+        historicoTiempos.values.unshift(duracion);
+        sumaDuraciones += duracion;
+      }
     });
+
+    // Calcular el promedio solo con los procesos mostrados en el gráfico
+    const promedioCierre = historicoTiempos.values.length > 0 
+      ? Math.round(sumaDuraciones / historicoTiempos.values.length) 
+      : 0;
 
     const ultimoProcesoActivo = await prisma.process.findFirst({
       where: {
@@ -88,6 +108,7 @@ export async function GET() {
       profesionalesCount,
       historicoTiempos,
       diasDesdeUltimoProcesoActivo,
+      promedioCierre
     });
   } catch (error) {
     console.error('Error obteniendo estadísticas:', error);
