@@ -3,6 +3,67 @@ import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /company:
+ *   get:
+ *     summary: Obtener lista de todos los clientes
+ *     description: Retorna una lista de todos los clientes ordenados alfabéticamente
+ *     tags: [Clientes]
+ *     responses:
+ *       200:
+ *         description: Lista de clientes obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Company'
+ *       500:
+ *         description: Error del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ * 
+ *   post:
+ *     summary: Crear un nuevo cliente
+ *     description: Crea un nuevo registro de cliente con los datos proporcionados
+ *     tags: [Clientes]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Nombre del cliente
+ *               logo:
+ *                 type: string
+ *                 format: binary
+ *                 description: Logo del cliente
+ *               description:
+ *                 type: string
+ *                 description: Descripción del cliente
+ *     responses:
+ *       201:
+ *         description: Cliente creado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Company'
+ *       500:
+ *         description: Error del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
 export async function GET() {
   try {
     const companies = await prisma.company.findMany({

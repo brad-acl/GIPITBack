@@ -4,15 +4,15 @@ import swaggerUi from 'swagger-ui-express';
 // Opciones de configuración de Swagger
 const options = {
     definition: {
-      openapi: '3.0.0',
+      openapi: '3.1.0',
       info: {
-        title: 'API de Gestión de Usuarios y Management',
+        title: 'API de GIPIT',
         version: '1.0.0',
         description: 'Documentación de la API con App Router',
       },
       servers: [
         {
-          url: 'http://localhost:3000/api', // URL base de tu API
+          url: 'http://localhost:3001/api', // URL base de tu API
         },
       ],
       components: {
@@ -61,6 +61,40 @@ const options = {
               updated_at: { type: 'string', format: 'date-time' },
             },
           },
+          Process: {
+            type: 'object',
+            properties: {
+              id: { type: 'integer' },
+              job_offer: { type: 'string' },
+              job_offer_description: { type: 'string' },
+              company_id: { type: 'integer' },
+              opened_at: { type: 'string', format: 'date-time', nullable: true },
+              closed_at: { type: 'string', format: 'date-time', nullable: true },
+              pre_filtered: { type: 'boolean' },
+              status: { type: 'string' },
+              created_at: { type: 'string', format: 'date-time' },
+              updated_at: { type: 'string', format: 'date-time' }
+            }
+          },
+          CandidateManagement: {
+            type: 'object',
+            properties: {
+              id: { type: 'integer' },
+              candidate_id: { type: 'integer' },
+              management_id: { type: 'integer' },
+              status: { type: 'string' },
+              start_date: { type: 'string', format: 'date' },
+              end_date: { type: 'string', format: 'date' },
+              created_at: { type: 'string', format: 'date-time' },
+              updated_at: { type: 'string', format: 'date-time' }
+            }
+          },
+          Error: {
+            type: 'object',
+            properties: {
+              error: { type: 'string' }
+            }
+          }
         },
       },
     },
