@@ -1,14 +1,8 @@
-import { swaggerSpec, swaggerUi } from '../../lib/swagger';
+import { swaggerSpec } from '../../lib/swagger';
 import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   return NextResponse.json(swaggerSpec);
 }
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-export { swaggerUi as default };
