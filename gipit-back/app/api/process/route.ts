@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
@@ -114,21 +114,27 @@ export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const page = parseInt(url.searchParams.get('page') || '1', 10);
+    const query = url.searchParams.get('query') || ''; // Captura el parámetro de búsqueda
     const pageSize = 15;
 
     console.log(`Obteniendo procesos para la página: ${page}`);
 
     if (page < 1) {
-      return NextResponse.json({ error: 'El núme ro de página debe ser mayor que 0.' }, { status: 400 });
+      return NextResponse.json({ error: 'El número de página debe ser mayor que 0.' }, { status: 400 });
     }
 
+    // Ajustar la consulta según el parámetro `query`
+    const where = query
+      ? { job_offer: { contains: query, mode: Prisma.QueryMode.insensitive } }
+      : undefined;
     // Actualizamos la consulta para incluir los candidatos asociados
     const processes = await prisma.process.findMany({
       skip: (page - 1) * pageSize,
       take: pageSize,
+      where, // Aplicar la cláusula `where` para filtrar
       include: {
         _count: {
-          select: { candidate_process: true }, // Cuenta la relación candidate_process
+          select: { candidate_process: true }, // Cuenta los candidatos asociados
         },
         candidate_process: {
           select: { candidate_id: true }, // Opcional: selecciona solo IDs si los necesitas
@@ -136,7 +142,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const total = await prisma.process.count();
+    const total = await prisma.process.count({ where }); // Filtra también el total si hay búsqueda
 
     // Transformamos los datos para devolverlos en el formato requerido
     const batch = processes.map((process) => ({
@@ -153,7 +159,9 @@ export async function GET(req: NextRequest) {
     }));
 
 
-    console.log(`Devolviendo ${processes.length} procesos para la página ${page}`);
+    // console.log(`Devolviendo ${processes.length} procesos para la página ${page}`);
+    console.log(`Obteniendo procesos para la página: ${page}, filtro: ${query}`);
+
 
     console.log('Devolviendo el back fetch process:', batch);
     return NextResponse.json({
