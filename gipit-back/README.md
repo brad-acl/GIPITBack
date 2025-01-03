@@ -1,36 +1,131 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GIPIT - Sistema de Gestión de Procesos de Reclutamiento
 
-## Getting Started
+## Descripción
+GIPIT es una plataforma integral diseñada para optimizar y gestionar procesos de reclutamiento, facilitando la interacción entre empresas y candidatos. El sistema permite gestionar vacantes, evaluar candidatos y realizar seguimiento de procesos de contratación.
 
-First, run the development server:
+## Tabla de Contenidos
+1. [Instalación](#instalación)
+2. [Configuración](#configuración)
+3. [Uso](#uso)
+4. [Estructura del Proyecto](#estructura-del-proyecto)
+5. [Funcionalidades](#funcionalidades)
+6. [Tecnologías Utilizadas](#tecnologías-utilizadas)
+7. [Contribución](#contribución)
+8. [Pruebas](#pruebas)
+9. [Despliegue](#despliegue)
+10. [Contacto](#contacto)
+11. [Licencia](#licencia)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Instalación
+### Requisitos previos
+- Node.js (versión recomendada: 18.x o superior)
+- npm o yarn
+- Base de datos compatible con Prisma
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Instrucciones de instalación
+1. Clonar el repositorio
+- `git clone [url-del-repositorio]`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. Instalar dependencias del backend
+- `cd gipit-back`
+- `npm install`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Instalar dependencias del frontend
+- `cd ../gipit-react`
+- `npm install`
 
-## Learn More
+## Configuración
+### Variables de entorno
+- Backend
+- `DATABASE_URL`: URL de conexión a la base de datos
+- `API_PORT`: Puerto para el servidor (default: 3001)   
 
-To learn more about Next.js, take a look at the following resources:
+- Frontend
+- `NEXT_PUBLIC_API_URL`: URL de la API (default: http://localhost:3001)
+- `NEXT_PUBLIC_BASE_URL`: URL base de la aplicación (default: http://localhost:3000)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Uso
+### Desarrollo
+# Backend
+- `cd gipit-back`
+- `npm run dev`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Frontend
+- `cd gipit-react`
+- `npm run dev`
 
-## Deploy on Vercel
+### Producción
+- `npm run build`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Estructura del Proyecto
+### Backend
+- `/app`: Código principal de la aplicación
+- `/api`: Endpoints y controladores
+- `/lib`: Utilidades y configuraciones
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Frontend
+- `/app`: Código fuente del frontend
+- `/(routes)`: Rutas y páginas
+- `/components`: Componentes reutilizables
+- `/lib`: Utilidades y tipos
+
+## Documentación API
+La documentación de la API está disponible a través de Swagger:
+- URL: `http://localhost:3001/api-docs`
+- Para agregar nuevos endpoints, seguir el formato JSDoc como se muestra a continuación:
+
+   ```typescript
+   /**
+    * @swagger
+    * /tu-ruta:
+    *   get:
+    *     summary: Descripción corta
+    *     description: Descripción detallada
+    *     tags: [Nombre del Grupo]
+    *     parameters:
+    *       - in: query
+    *         name: parametro
+    *         schema:
+    *           type: string
+    *         description: Descripción del parámetro
+    *     responses:
+    *       200:
+    *         description: Respuesta exitosa
+    */
+   ```
+
+## Tecnologías Utilizadas
+### Backend: 
+- Next.js (App Router)
+- Swagger para documentación API
+- Prisma ORM
+
+### Frontend: 
+- Next.js
+- React
+- TypeScript
+- CSS Modules   
+
+## Contribución
+- Hacer un fork del repositorio
+- Crear una nueva rama (`git checkout -b feature/XYZ`)
+- Hacer commit de los cambios (`git commit -m 'Add feature XYZ'`)
+- Enviar un pull request
+
+## Pruebas
+- `npm test`
+
+## Despliegue
+### Backend
+- `cd gipit-back`
+- `npm run build`
+
+### Frontend
+- `cd gipit-react`
+- `npm run build`
+
+## Contacto
+- Correo: ejemplo@correo.com
+
+## Licencia
+Distribuido bajo la licencia MIT.
