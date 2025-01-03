@@ -4,6 +4,15 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+interface ProfessionalData {
+  id: number;
+  service?: string;
+  hourValue: number;
+  hoursWorked?: number;
+  subtotal?: number;
+  vat?: number;
+  notes?: string;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -50,7 +59,7 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({
-      total, 
+      total,
       batch: formattedPreInvoices,
     });
   } catch (error) {
@@ -58,26 +67,52 @@ export async function GET(req: NextRequest) {
   }
 }
 
-const currentDate = new Date(); 
-const nextMonthDate = new Date(); 
-nextMonthDate.setMonth(currentDate.getMonth() + 1);
-
 export async function POST(req: NextRequest) {
+  console.log('Solicitud POST recibida');
   try {
+    const { estimated_date, expiration_date, total_value, description, status, professionals }: { 
+      estimated_date: string; 
+      expiration_date: string; 
+      total_value: number; 
+      description: string; 
+      status: string; 
+      professionals: ProfessionalData[];
+    } = await req.json();
 
+    console.log('Datos recibidos en el backend:', { estimated_date, expiration_date, total_value, description, status, professionals });
 
-    const { total_value, description, status } = await req.json();
     const preInvoice = await prisma.pre_invoices.create({
       data: {
-        estimated_date: currentDate,
-        expiration_date: nextMonthDate,
+        estimated_date: new Date(estimated_date),
+        expiration_date: new Date(expiration_date),
         total_value,
         description,
         status,
       },
     });
+
+    console.log('Factura creada con éxito:', preInvoice);
+
+    // Crear los detalles en pre_invoice_items
+    const preInvoiceItems = professionals.map((prof) => ({
+      pre_invoice_id: preInvoice.id,
+      candidate_id: prof.id,
+      service: prof.service || '',
+      rate: prof.hourValue,
+      hours: prof.hoursWorked || 0,
+      subtotal: prof.subtotal || 0,
+      vat: prof.vat || 0,
+      total: prof.subtotal || 0,
+      description: prof.notes || '',
+    }));
+
+    await prisma.pre_invoice_items.createMany({
+      data: preInvoiceItems,
+    });
+
     return NextResponse.json(preInvoice, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: `Error llamando actualizando factura - ${error}` }, { status: 500 });
+    console.error('Error al guardar la factura:', error);
+    return NextResponse.json({ error: `Error al guardar la factura - ${error}` }, { status: 500 });
   }
 }

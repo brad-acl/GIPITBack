@@ -43,9 +43,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const { estimated_date, expiration_date, total_value, description, status } = await req.json();
 
   try {
-
-    
-
     const preInvoice = await prisma.pre_invoices.update({
       where: { id: Number(id) },
       data: {

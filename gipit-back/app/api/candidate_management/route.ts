@@ -18,11 +18,28 @@ const prisma = new PrismaClient();
  *               items:
  *                 $ref: '#/components/schemas/CandidateManagement'
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
+  const companyId = parseInt(url.searchParams.get('company_id') || '0');
+
+  if (isNaN(companyId) || companyId <= 0) {
+    return NextResponse.json({ error: 'ID de compañía inválido' }, { status: 400 });
+  }
+
   try {
+    const candidateManagementRecords = await prisma.candidate_management.findMany({
+      where: {
+        management: {
+          company_id: companyId,
+        },
+      },
+      include: {
+        candidates: true,
+      },
+    });
 
+    console.log("Registros de gestión de candidatos para la compañía ID:", companyId, candidateManagementRecords);
 
-    const candidateManagementRecords = await prisma.candidate_management.findMany();
     return NextResponse.json(candidateManagementRecords);
   } catch (error) {
     return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
