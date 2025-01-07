@@ -131,6 +131,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         candidate_process: {
           select: {
             match_percent: true, // Selecciona el match_percent del candidato
+            stage: true,
             candidates: {
               select: {
                 id: true,
@@ -159,6 +160,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       address: cp.candidates?.address,
       jsongpt_text: cp.candidates?.jsongpt_text,
       match: cp.match_percent ?? 0, // Añadir el porcentaje de compatibilidad desde candidate_process
+      stage: cp.stage ?? 'entrevistas',
     }));
 
     // Crear la respuesta combinada del proceso y los candidatos
