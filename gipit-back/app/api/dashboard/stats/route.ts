@@ -3,43 +3,34 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const companyId = searchParams.get('companyId');
-
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
     const [activosCount, cerradosCount, cerradostrimestreCount, profesionalesCount] = await Promise.all([
       prisma.process.count({
         where: {
-          status: { equals: 'activo', mode: 'insensitive' },
-          company_id: companyId ? parseInt(companyId) : undefined
+          status: { equals: 'activo', mode: 'insensitive' }
         },
       }),
       prisma.process.count({
         where: {
           status: { equals: 'cerrado', mode: 'insensitive' },
           closed_at: { not: null },
-          company_id: companyId ? parseInt(companyId) : undefined
         },
       }),
       prisma.process.count({
         where: {
           status: { equals: 'cerrado', mode: 'insensitive' },
           closed_at: { gte: threeMonthsAgo },
-          company_id: companyId ? parseInt(companyId) : undefined
         },
       }),
       prisma.candidates.count({
         where: {
           candidate_management: {
             some: {
-              status: { equals: 'activo', mode: 'insensitive' },
-              management: {
-                company_id: companyId ? parseInt(companyId) : undefined
-              }
+              status: { equals: 'activo', mode: 'insensitive' }
             },
           },
         },
@@ -51,7 +42,6 @@ export async function GET(request: Request) {
         status: { equals: 'cerrado', mode: 'insensitive' },
         opened_at: { not: null },
         closed_at: { not: null },
-        company_id: companyId ? parseInt(companyId) : undefined,
         AND: [
           {
             closed_at: {
@@ -59,6 +49,15 @@ export async function GET(request: Request) {
             }
           }
         ]
+      },
+      orderBy: {
+        closed_at: 'desc'
+      },
+      take: 6,
+      select: {
+        job_offer: true,
+        opened_at: true,
+        closed_at: true,
       },
     });
 
