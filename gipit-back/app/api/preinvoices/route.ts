@@ -1,6 +1,6 @@
-// api/preinvoices/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+
 
 const prisma = new PrismaClient();
 
@@ -18,84 +18,43 @@ export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const page = parseInt(url.searchParams.get('page') || '1', 10);
-    const companyId = url.searchParams.get('companyId');
     const pageSize = 15;
 
-    if (!companyId) {
-      return NextResponse.json({ error: 'Se requiere ID de compañía' }, { status: 400 });
+    if (page < 1) {
+      return NextResponse.json({ error: 'El número de página debe ser mayor que 0.' }, { status: 400 });
     }
 
     const preInvoices = await prisma.pre_invoices.findMany({
-      where: {
-        pre_invoice_items: {
-          some: {
-            candidates: {
-              candidate_management: {
-                some: {
-                  management: {
-                    company_id: parseInt(companyId)
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+      skip: (page - 1) * pageSize, 
+      take: pageSize,      
       include: {
         _count: {
-          select: { pre_invoice_items: true }
+          select: {
+            pre_invoice_items: true,
+          },
         },
         pre_invoice_items: {
           include: {
-            candidates: {
-              include: {
-                candidate_management: {
-                  include: {
-                    management: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+            candidates: true,
+          },
+        },
+      },
     });
 
-    const total = await prisma.pre_invoices.count({
-      where: {
-        pre_invoice_items: {
-          some: {
-            candidates: {
-              candidate_management: {
-                some: {
-                  management: {
-                    company_id: parseInt(companyId)
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    });
-
+    const total = await prisma.pre_invoices.count();
     const formattedPreInvoices = preInvoices.map((preInvoice) => {
-      const candidatesOfCompany = preInvoice.pre_invoice_items
-        .filter(item => item.candidates?.candidate_management
-          ?.some(cm => cm.management?.company_id === parseInt(companyId)))
-        .map(item => item.candidates);
+      const candidates = preInvoice.pre_invoice_items.flatMap(item => item.candidates || []);
+      const professionals = candidates.map(candidate => candidate.name).slice(0, 3);
+      const additionalCount = candidates.length - 3;
 
-      const professionals = candidatesOfCompany.map(candidate => candidate?.name).slice(0, 3);
-      const additionalCount = candidatesOfCompany.length - 3;
+      const professionalsDisplay = additionalCount > 0 
+        ? `${professionals.join(', ')} y otros ${additionalCount}` 
+        : professionals.join(', ');
 
       return {
         ...preInvoice,
-        professionals: additionalCount > 0 
-          ? `${professionals.join(', ')} y otros ${additionalCount}` 
-          : professionals.join(', '),
-        cantidad: preInvoice._count.pre_invoice_items
+        professionals: professionalsDisplay,
+        cantidad: preInvoice._count.pre_invoice_items || 0,
       };
     });
 
@@ -134,6 +93,7 @@ export async function POST(req: NextRequest) {
 
     console.log('Factura creada con éxito:', preInvoice);
 
+    // Crear los detalles en pre_invoice_items
     const preInvoiceItems = professionals.map((prof) => ({
       pre_invoice_id: preInvoice.id,
       candidate_id: prof.id,
