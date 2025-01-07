@@ -1,37 +1,67 @@
-// Ruta: /api/pre_invoices/[id]
+// api/preinvoices/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-
 
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
-
   try {
-    const preInvoice = await prisma.pre_invoices.findUnique({
-      where: { id: Number(id) },
+    const { searchParams } = new URL(req.url);
+    const companyId = searchParams.get('companyId');
+
+    if (!companyId) {
+      return NextResponse.json({ error: 'Se requiere ID de compañía' }, { status: 400 });
+    }
+
+    const preInvoice = await prisma.pre_invoices.findFirst({
+      where: {
+        id: Number(params.id),
+        pre_invoice_items: {
+          some: {
+            candidates: {
+              candidate_management: {
+                some: {
+                  management: {
+                    company_id: parseInt(companyId)
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       include: {
         pre_invoice_items: {
           include: {
-            candidates: true,
-          },
-        },
-      },
+            candidates: {
+              include: {
+                candidate_management: {
+                  include: {
+                    management: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     });
 
     if (!preInvoice) {
-      return NextResponse.json({ error: 'Pre-invoice not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Pre-factura no encontrada' }, { status: 404 });
     }
 
-    // Procesar los detalles de la factura y los candidatos
-    const candidates = preInvoice.pre_invoice_items.flatMap(item => item.candidates);
-    console.log('Detalles de la factura:', preInvoice);
-    console.log('Candidatos asociados:', candidates);
+    const filteredItems = preInvoice.pre_invoice_items.filter(item => 
+      item.candidates?.candidate_management?.some(cm => 
+        cm.management?.company_id === parseInt(companyId)
+      )
+    );
+
+    const candidates = filteredItems.map(item => item.candidates);
 
     return NextResponse.json({
-      preInvoice,
-      candidates,
+      preInvoice: { ...preInvoice, pre_invoice_items: filteredItems },
+      candidates
     });
   } catch (error) {
     return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
@@ -64,9 +94,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const { id } = params;
 
   try {
-
-    
-
     await prisma.pre_invoices.delete({
       where: { id: Number(id) },
     });
