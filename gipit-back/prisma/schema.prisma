@@ -63,14 +63,15 @@ model comments_process {
 }
 
 model company {
-  id          Int          @id @default(autoincrement())
-  name        String       @db.VarChar(255)
-  description String?
-  created_at  DateTime?    @default(now()) @db.Timestamp(6)
-  updated_at  DateTime?    @default(now()) @db.Timestamp(6)
-  logo        Bytes?
-  management  management[]
-  process     process[]
+  id           Int            @id @default(autoincrement())
+  name         String         @db.VarChar(255)
+  description  String?
+  created_at   DateTime?      @default(now()) @db.Timestamp(6)
+  updated_at   DateTime?      @default(now()) @db.Timestamp(6)
+  logo         Bytes?
+  management   management[]
+  pre_invoices pre_invoices[]
+  process      process[]
 }
 
 model management {
@@ -93,7 +94,7 @@ model post_sales_activities {
   date                    DateTime?             @db.Date
   created_at              DateTime?             @default(now()) @db.Timestamp(6)
   updated_at              DateTime?             @default(now()) @db.Timestamp(6)
-  eval_stack              Boolean?              @default(false)
+  eval_stack              Int?                  @default(0)
   eval_comunicacion       Int?
   eval_motivacion         Int?
   eval_cumplimiento       Int?
@@ -125,7 +126,9 @@ model pre_invoices {
   total_value       Decimal?            @db.Decimal(10, 2)
   description       String?
   status            String?             @db.VarChar(20)
+  company_id        Int?                @default(1)
   pre_invoice_items pre_invoice_items[]
+  company           company?            @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model process {
