@@ -18,30 +18,59 @@ export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const page = parseInt(url.searchParams.get('page') || '1', 10);
+    const query = url.searchParams.get('query') || '';
+    const status = url.searchParams.get('status') || '';
+    const year = url.searchParams.get('year') || '';
     const pageSize = 15;
 
     if (page < 1) {
       return NextResponse.json({ error: 'El número de página debe ser mayor que 0.' }, { status: 400 });
     }
 
-    const preInvoices = await prisma.pre_invoices.findMany({
-      skip: (page - 1) * pageSize, 
-      take: pageSize,      
-      include: {
-        _count: {
-          select: {
-            pre_invoice_items: true,
+    const whereClause = {
+      AND: [
+        query ? {
+          pre_invoice_items: {
+            some: {
+              candidates: {
+                is: {
+                  name: {
+                    contains: query,
+                    mode: 'insensitive' as const,
+                  },
+                },
+              },
+            },
           },
-        },
-        pre_invoice_items: {
-          include: {
-            candidates: true,
-          },
-        },
-      },
-    });
+        } : {},
+        status ? { status: status } : {},
+        year ? {
+          estimated_date: {
+            gte: new Date(`${year}-01-01`),
+            lt: new Date(`${parseInt(year) + 1}-01-01`),
+          }
+        } : {},
+      ],
+    };
 
-    const total = await prisma.pre_invoices.count();
+    const [preInvoices, total] = await prisma.$transaction([
+      prisma.pre_invoices.findMany({
+        where: whereClause,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: {
+          pre_invoice_items: {
+            include: {
+              candidates: true,
+            },
+          },
+        },
+      }),
+      prisma.pre_invoices.count({
+        where: whereClause,
+      }),
+    ]);
+
     const formattedPreInvoices = preInvoices.map((preInvoice) => {
       const candidates = preInvoice.pre_invoice_items.flatMap(item => item.candidates || []);
       const professionals = candidates.map(candidate => candidate.name).slice(0, 3);
@@ -54,65 +83,82 @@ export async function GET(req: NextRequest) {
       return {
         ...preInvoice,
         professionals: professionalsDisplay,
-        cantidad: preInvoice._count.pre_invoice_items || 0,
       };
     });
 
     return NextResponse.json({
       total,
       batch: formattedPreInvoices,
-    });
-  } catch (error) {
-    return NextResponse.json({ error: `Error llamando informacion de facturas - ${error}` }, { status: 500 });
+    }, { status: 200 });
+  } catch (err) {
+    console.error('Error al procesar la solicitud:', err);
+    return NextResponse.json({ error: 'Error al procesar la solicitud' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
-  console.log('Solicitud POST recibida');
   try {
-    const { estimated_date, expiration_date, total_value, description, status, professionals }: { 
-      estimated_date: string; 
-      expiration_date: string; 
-      total_value: number; 
-      description: string; 
-      status: string; 
+    const { 
+      estimated_date, 
+      expiration_date, 
+      total_value, 
+      description, 
+      status, 
+      professionals, 
+      company_id 
+    }: { 
+      estimated_date: string;
+      expiration_date: string;
+      total_value: number;
+      description: string;
+      status: string;
       professionals: ProfessionalData[];
+      company_id: number;
     } = await req.json();
 
-    console.log('Datos recibidos en el backend:', { estimated_date, expiration_date, total_value, description, status, professionals });
-
+    // Crear la pre-factura
     const preInvoice = await prisma.pre_invoices.create({
       data: {
         estimated_date: new Date(estimated_date),
         expiration_date: new Date(expiration_date),
-        total_value,
+        total_value: Number(total_value),
         description,
         status,
+        company_id: Number(company_id)
       },
     });
+    // Calcular el total antes de guardar
 
-    console.log('Factura creada con éxito:', preInvoice);
 
-    // Crear los detalles en pre_invoice_items
-    const preInvoiceItems = professionals.map((prof) => ({
-      pre_invoice_id: preInvoice.id,
-      candidate_id: prof.id,
-      service: prof.service || '',
-      rate: prof.hourValue,
-      hours: prof.hoursWorked || 0,
-      subtotal: prof.subtotal || 0,
-      vat: prof.vat || 0,
-      total: prof.subtotal || 0,
-      description: prof.notes || '',
-    }));
+    // Crear los items de la pre-factura si hay profesionales
+    if (professionals && professionals.length > 0) {
+        await prisma.pre_invoice_items.createMany({
+            data: professionals.map((prof) => {
+                const subtotal = Number(prof.subtotal || 0);
+                const vat = Number(prof.vat || 0);
+                const total = subtotal + (subtotal * (vat / 100)); // Calcular el total
 
-    await prisma.pre_invoice_items.createMany({
-      data: preInvoiceItems,
-    });
+                return {
+                    pre_invoice_id: preInvoice.id,
+                    candidate_id: prof.id,
+                    hours: Number(prof.hoursWorked || 0),
+                    rate: String(prof.hourValue || 0),
+                    total: String(total), // Guardar el total calculado
+                    description: prof.notes || '',
+                    service: '',
+                    vat: String(vat),
+                    subtotal: String(subtotal)
+                };
+            })
+        });
+    }
 
     return NextResponse.json(preInvoice, { status: 201 });
-  } catch (error) {
-    console.error('Error al guardar la factura:', error);
-    return NextResponse.json({ error: `Error al guardar la factura - ${error}` }, { status: 500 });
+  } catch (err) {
+    console.error('Error detallado al crear la factura:', err);
+    return NextResponse.json({ 
+      error: `Error al crear la factura: ${err}`,
+      details: err 
+    }, { status: 500 });
   }
 }

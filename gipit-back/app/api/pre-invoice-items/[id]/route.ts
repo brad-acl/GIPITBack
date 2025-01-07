@@ -56,15 +56,27 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const { id } = params;
 
   try {
-
-
-
-    await prisma.pre_invoice_items.delete({
+    // Verificar si la factura existe antes de intentar eliminarla
+    const preInvoice = await prisma.pre_invoices.findUnique({
       where: { id: Number(id) },
     });
 
-    return NextResponse.json({ message: 'Pre-invoice item deleted successfully' });
+    if (!preInvoice) {
+      return NextResponse.json({ error: 'Factura no encontrada' }, { status: 404 });
+    }
+
+    // Primero, eliminar los ítems de la pre-factura
+    await prisma.pre_invoice_items.deleteMany({
+      where: { pre_invoice_id: Number(id) },
+    });
+
+    // Luego, eliminar la pre-factura
+    await prisma.pre_invoices.delete({
+      where: { id: Number(id) },
+    });
+
+    return NextResponse.json({ message: 'Factura eliminada con éxito' }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error al eliminar la factura - ${error}` }, { status: 500 });
   }
 }
