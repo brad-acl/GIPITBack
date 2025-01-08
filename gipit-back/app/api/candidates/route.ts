@@ -23,6 +23,26 @@ export async function POST(req: NextRequest) {
 
   try {
 
+    // Verificar si ya existe un candidato con el mismo correo electrónico o teléfono
+    const existingCandidate = await prisma.candidates.findFirst({
+      where: {
+        OR: [
+          { email: email },
+          { phone: phone },
+        ],
+      },
+    });
+
+    if (existingCandidate) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'El candidato ya existe con el mismo correo electrónico o número de teléfono.',
+        },
+        { status: 409 } // Código HTTP para conflicto
+      );
+    }
+
     const candidate = await prisma.candidates.create({
       data: {
         name,

@@ -139,6 +139,10 @@ export async function GET(req: NextRequest) {
         candidate_process: {
           select: { candidate_id: true }, // Opcional: selecciona solo IDs si los necesitas
         },
+        company: {
+          select: { name: true }, // Selecciona solo el nombre de la compañía
+        },
+
       },
     });
 
@@ -155,6 +159,7 @@ export async function GET(req: NextRequest) {
       candidates: process._count.candidate_process || 0,
       status: process.status ?? "Pendiente",
       stage: "Entrevistas", // Valor predeterminado para 'stage'
+      company: process.company?.name ?? 'Sin compañía',
       candidatesIds: process.candidate_process.map((cp) => cp.candidate_id) ?? [], // IDs de candidatos
     }));
 
