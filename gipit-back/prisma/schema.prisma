@@ -44,7 +44,7 @@ model candidates {
   id                   Int                    @id @default(autoincrement())
   name                 String                 @db.VarChar(255)
   phone                String?                @db.VarChar(50)
-  email                String?                @db.VarChar(255)
+  email                String                 @unique(map: "email_unique") @db.VarChar(255)
   address              String?
   jsongpt_text         String?
   total_experience     Int?                   @default(0)
