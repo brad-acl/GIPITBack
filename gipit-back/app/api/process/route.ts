@@ -113,20 +113,41 @@ const prisma = new PrismaClient();
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
+    console.log("URL completa recibida:", req.url);
     const page = parseInt(url.searchParams.get('page') || '1', 10);
     const query = url.searchParams.get('query') || ''; // Captura el parámetro de búsqueda
+    const companyId = url.searchParams.get('companyId') || ''; // Captura el parámetro de ID de compañía
+    const status = url.searchParams.get('status') || '';
     const pageSize = 15;
 
+    console.log(`Compania seleccionada filtro: ${companyId}`);
     console.log(`Obteniendo procesos para la página: ${page}`);
 
     if (page < 1) {
       return NextResponse.json({ error: 'El número de página debe ser mayor que 0.' }, { status: 400 });
     }
 
-    // Ajustar la consulta según el parámetro `query`
-    const where = query
-      ? { job_offer: { contains: query, mode: Prisma.QueryMode.insensitive } }
-      : undefined;
+    // Construir la cláusula `where` para los filtros
+    const where: Prisma.processWhereInput = {};
+
+    // Agregar el filtro de `query` si está presente
+    if (query) {
+      where.job_offer = {
+        contains: query,
+        mode: Prisma.QueryMode.insensitive, // Búsqueda sin sensibilidad a mayúsculas/minúsculas
+      };
+    }
+    
+    // Agregar el filtro de `companyId` si está presente
+    if (companyId) {
+      where.company_id = parseInt(companyId);
+    }
+    
+    // Agregar el filtro de `status` si está presente
+    if (status) {
+      where.status = status;
+    }
+
     // Actualizamos la consulta para incluir los candidatos asociados
     const processes = await prisma.process.findMany({
       skip: (page - 1) * pageSize,
@@ -157,7 +178,7 @@ export async function GET(req: NextRequest) {
       endAt: process?.closed_at && process?.closed_at !== null ? new Date(process.closed_at).toLocaleDateString() : null,
       preFiltered: process.pre_filtered ? 1 : 0,
       candidates: process._count.candidate_process || 0,
-      status: process.status ?? "Pendiente",
+      status: process?.status ?? "Pendiente",
       stage: "Entrevistas", // Valor predeterminado para 'stage'
       company: process.company?.name ?? 'Sin compañía',
       candidatesIds: process.candidate_process.map((cp) => cp.candidate_id) ?? [], // IDs de candidatos
@@ -165,7 +186,7 @@ export async function GET(req: NextRequest) {
 
 
     // console.log(`Devolviendo ${processes.length} procesos para la página ${page}`);
-    console.log(`Obteniendo procesos para la página: ${page}, filtro: ${query}`);
+    console.log(`Filtros recibidos: query=${query}, status=${status}, companyId=${companyId}`);
 
 
     console.log('Devolviendo el back fetch process:', batch);
