@@ -134,8 +134,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 
     return NextResponse.json({ error: 'Acción no reconocida' }, { status: 400 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error al cambiar el estado de la factura:', error);
-    return NextResponse.json({ error: `Error al cambiar el estado de la factura: ${error.message}` }, { status: 500 });
+    if (error instanceof Error) {
+      return NextResponse.json({ error: `Error al cambiar el estado de la factura: ${error.message}` }, { status: 500 });
+    } else {
+      return NextResponse.json({ error: 'Error desconocido al cambiar el estado de la factura' }, { status: 500 });
+    }
   }
 }
