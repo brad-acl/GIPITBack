@@ -50,7 +50,7 @@ export function middleware(req: NextRequest) {
     preflightResponse.headers.set("Access-Control-Allow-Origin", "*");
     preflightResponse.headers.set(
       "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
+      "GET, POST, PUT, DELETE, OPTIONS, PATCH"
     );
     preflightResponse.headers.set(
       "Access-Control-Allow-Headers",
@@ -64,7 +64,7 @@ export function middleware(req: NextRequest) {
   response.headers.set("Access-Control-Allow-Origin", "*");
   response.headers.set(
     "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS"
+    "GET, POST, PUT, DELETE, OPTIONS, PATCH"
   );
   response.headers.set(
     "Access-Control-Allow-Headers",

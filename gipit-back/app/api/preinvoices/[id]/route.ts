@@ -114,20 +114,32 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
+  const { action } = await req.json();
+
   try {
-    await prisma.pre_invoice_items.deleteMany({
-      where: { pre_invoice_id: Number(id) }
-    });
+    if (action === 'reject') {
+      const updatedInvoice = await prisma.pre_invoices.update({
+        where: { id: Number(id) },
+        data: { status: 'rechazado' },
+      });
+      return NextResponse.json({ message: 'Factura rechazada con éxito', updatedInvoice });
+    } else if (action === 'approve') {
+      const updatedInvoice = await prisma.pre_invoices.update({
+        where: { id: Number(id) },
+        data: { status: 'aprobado' },
+      });
+      return NextResponse.json({ message: 'Factura aprobada con éxito', updatedInvoice });
+    }
 
-    await prisma.pre_invoices.delete({
-      where: { id: Number(id) }
-    });
-
-    return NextResponse.json({ message: 'Factura eliminada con éxito' });
-  } catch (err) {
-    console.error('Error al eliminar:', err);
-    return NextResponse.json({ error: `Error al eliminar la factura: ${err}` }, { status: 500 });
+    return NextResponse.json({ error: 'Acción no reconocida' }, { status: 400 });
+  } catch (error: unknown) {
+    console.error('Error al cambiar el estado de la factura:', error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: `Error al cambiar el estado de la factura: ${error.message}` }, { status: 500 });
+    } else {
+      return NextResponse.json({ error: 'Error desconocido al cambiar el estado de la factura' }, { status: 500 });
+    }
   }
 }
