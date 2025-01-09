@@ -183,6 +183,25 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const data = await req.json();
 
   try {
+    if (!id || isNaN(Number(id))) {
+      return NextResponse.json({ error: 'ID inválido o faltante' }, { status: 400 });
+    }
+    // Validar acción especificada en la solicitud
+    if (data.action === "close") {
+      // Lógica para cerrar el proceso
+      const updatedProcess = await prisma.process.update({
+        where: { id: parseInt(id) },
+        data: {
+          status: "Cerrado", // Cambia el estado a "Cerrado"
+          closed_at: new Date(), // Establece la fecha de cierre
+        },
+      });
+
+      return NextResponse.json({
+        message: "Proceso cerrado con éxito",
+        updatedProcess,
+      });
+    }
     // Actualizar el proceso en la base de datos con solo la descripción de la oferta de trabajo
     const updatedProcess = await prisma.process.update({
       where: { id: parseInt(id) },
@@ -202,6 +221,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: `Error al actualizar proceso: ${error}` }, { status: 500 });
   }
 }
+
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
