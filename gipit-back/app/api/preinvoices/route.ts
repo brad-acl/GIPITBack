@@ -16,20 +16,58 @@ interface ProfessionalData {
 
 export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
     const url = new URL(req.url);
     const page = parseInt(url.searchParams.get('page') || '1', 10);
     const query = url.searchParams.get('query') || '';
     const status = url.searchParams.get('status') || '';
     const year = url.searchParams.get('year') || '';
+    const userRole = searchParams.get('userRole');
+    const companyId = searchParams.get('companyId');
+
     const pageSize = 15;
 
     if (page < 1) {
       return NextResponse.json({ error: 'El número de página debe ser mayor que 0.' }, { status: 400 });
     }
 
-    const whereClause = {
-      AND: [
-        query ? {
+    console.log('userRole:', userRole);
+    console.log('companyId:', companyId);
+
+    interface WhereClause {
+      company_id?: number;
+      OR?: Array<{
+        pre_invoice_items: {
+          some: {
+            candidates: {
+              is: {
+                name: {
+                  contains: string;
+                  mode: 'insensitive';
+                };
+              };
+            };
+          };
+        };
+      }>;
+      status?: string;
+      estimated_date?: {
+        gte: Date;
+        lt: Date;
+      };
+      // Puedes agregar aquí más propiedades para otros filtros si los necesitas
+    }
+    
+    // Y luego usarlo así:
+    const whereClause: WhereClause = {};
+    
+    if (userRole === 'client' && companyId) {
+      whereClause.company_id = parseInt(companyId);
+    }
+    
+    if (query) {
+      whereClause.OR = [
+        {
           pre_invoice_items: {
             some: {
               candidates: {
@@ -42,16 +80,24 @@ export async function GET(req: NextRequest) {
               },
             },
           },
-        } : {},
-        status ? { status: status } : {},
-        year ? {
-          estimated_date: {
-            gte: new Date(`${year}-01-01`),
-            lt: new Date(`${parseInt(year) + 1}-01-01`),
-          }
-        } : {},
-      ],
-    };
+        }
+      ];
+    }
+    
+    if (status) {
+      whereClause.status = status;
+    }
+    
+    if (year) {
+      whereClause.estimated_date = {
+        gte: new Date(`${year}-01-01`),
+        lt: new Date(`${parseInt(year) + 1}-01-01`),
+      };
+    }
+
+    console.log('whereClause antes de limpiar:', whereClause);
+
+    console.log('whereClause final:', whereClause);
 
     const [preInvoices, total] = await prisma.$transaction([
       prisma.pre_invoices.findMany({
