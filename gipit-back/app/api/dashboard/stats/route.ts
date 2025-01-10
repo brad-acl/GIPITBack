@@ -3,34 +3,45 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const companyId = searchParams.get('companyId');
+
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
     const [activosCount, cerradosCount, cerradostrimestreCount, profesionalesCount] = await Promise.all([
       prisma.process.count({
         where: {
-          status: { equals: 'activo', mode: 'insensitive' }
+          status: { equals: 'activo', mode: 'insensitive' },
+          company_id: companyId ? parseInt(companyId) : undefined
         },
       }),
       prisma.process.count({
         where: {
           status: { equals: 'cerrado', mode: 'insensitive' },
           closed_at: { not: null },
+          company_id: companyId ? parseInt(companyId) : undefined
         },
       }),
       prisma.process.count({
         where: {
           status: { equals: 'cerrado', mode: 'insensitive' },
           closed_at: { gte: threeMonthsAgo },
+          company_id: companyId ? parseInt(companyId) : undefined
         },
       }),
       prisma.candidates.count({
         where: {
           candidate_management: {
             some: {
-              status: { equals: 'activo', mode: 'insensitive' }
+              status: { equals: 'activo', mode: 'insensitive' },
+              management: {
+                company_id: companyId ? parseInt(companyId) : undefined
+              }
             },
           },
         },
@@ -42,6 +53,7 @@ export async function GET() {
         status: { equals: 'cerrado', mode: 'insensitive' },
         opened_at: { not: null },
         closed_at: { not: null },
+        ...(companyId ? { company_id: parseInt(companyId) } : {}),
         AND: [
           {
             closed_at: {
@@ -51,13 +63,7 @@ export async function GET() {
         ]
       },
       orderBy: {
-        closed_at: 'desc'
-      },
-      take: 6,
-      select: {
-        job_offer: true,
-        opened_at: true,
-        closed_at: true,
+        closed_at: 'desc' // Ordenar por fecha de cierre descendente
       },
     });
 
@@ -84,7 +90,6 @@ export async function GET() {
       }
     });
 
-    // Calcular el promedio solo con los procesos mostrados en el gráfico
     const promedioCierre = historicoTiempos.values.length > 0 
       ? Math.round(sumaDuraciones / historicoTiempos.values.length) 
       : 0;

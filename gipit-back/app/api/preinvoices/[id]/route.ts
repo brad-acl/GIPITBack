@@ -17,10 +17,19 @@ interface Professional {
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
+  const { searchParams } = new URL(req.url);
+  const companyId = searchParams.get('companyId');
+  const userRole = searchParams.get('userRole');
 
   try {
-    const preInvoice = await prisma.pre_invoices.findUnique({
-      where: { id: Number(id) },
+
+    const whereClause = {
+      id: Number(id),
+      ...(userRole === 'client' && companyId ? { company_id: parseInt(companyId) } : {})
+    };
+
+    const preInvoice = await prisma.pre_invoices.findFirst({
+      where: whereClause,
       include: {
         pre_invoice_items: {
           include: {
@@ -34,16 +43,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Pre-invoice not found' }, { status: 404 });
     }
 
-    // Procesar los detalles de la factura y los candidatos
     const candidates = preInvoice.pre_invoice_items.flatMap(item => item.candidates);
-    console.log('Detalles de la factura:', preInvoice);
-    console.log('Candidatos asociados:', candidates);
 
     return NextResponse.json({
       preInvoice,
       candidates,
     });
   } catch (error) {
+    console.error('Error en GET preinvoices/[id]:', error);
     return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
   }
 }
