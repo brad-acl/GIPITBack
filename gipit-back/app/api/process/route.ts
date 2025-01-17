@@ -134,7 +134,9 @@ export async function GET(req: NextRequest) {
     const where: Prisma.processWhereInput = {};
 
     if (userRole === 'client' && userCompanyId) {
-      where.company_id = parseInt(userCompanyId);
+      where.management = {
+        company_id: parseInt(userCompanyId),
+      };
     }
 
     // Agregar el filtro de `query` si está presente
@@ -146,8 +148,11 @@ export async function GET(req: NextRequest) {
     }
     
     // Agregar el filtro de `companyId` si está presente
+    // Filtro por `companyId`
     if (companyId) {
-      where.company_id = parseInt(companyId);
+      where.management = {
+        company_id: parseInt(companyId),
+      };
     }
     
     // Agregar el filtro de `status` si está presente
@@ -155,7 +160,6 @@ export async function GET(req: NextRequest) {
       where.status = status;
     }
 
-    // Actualizamos la consulta para incluir los candidatos asociados
     const processes = await prisma.process.findMany({
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -167,12 +171,18 @@ export async function GET(req: NextRequest) {
         candidate_process: {
           select: { candidate_id: true }, // Opcional: selecciona solo IDs si los necesitas
         },
-        company: {
-          select: { name: true }, // Selecciona solo el nombre de la compañía
+        management: {
+          select: {
+            name: true, // Nombre de la jefatura
+            company: {
+              select: { name: true }, // Nombre de la compañía asociada
+            },
+          },
         },
-
       },
     });
+
+    console.log(processes);
 
     const total = await prisma.process.count({ where }); // Filtra también el total si hay búsqueda
 
@@ -187,7 +197,8 @@ export async function GET(req: NextRequest) {
       candidates: process._count.candidate_process || 0,
       status: process?.status ?? "Pendiente",
       stage: "Entrevistas", // Valor predeterminado para 'stage'
-      company: process.company?.name ?? 'Sin compañía',
+      company: process.management?.company?.name || 'Sin compañía',      
+      management: process.management?.name || 'Sin jefatura',
       candidatesIds: process.candidate_process.map((cp) => cp.candidate_id) ?? [], // IDs de candidatos
     }));
 
@@ -212,13 +223,27 @@ export async function POST(req: NextRequest) {
     const data = await req.json();
 
     // Verificar si la compañía existe antes de crear el proceso
-    const companyExists = await prisma.company.findUnique({
-      where: { id: data.company_id }
+    // const companyExists = await prisma.company.findUnique({
+    //   where: { id: data.company_id }
+    // });
+        // Validar si el management existe antes de crear el proceso
+    const managementId = Number(data.managementId);
+    if (isNaN(managementId)) {
+      return NextResponse.json(
+        { error: "El management_id es requerido y debe ser un número válido." },
+        { status: 400 }
+      );
+    }
+
+    // Verificar si la jefatura (management) existe
+    const managementExists = await prisma.management.findUnique({
+      where: { id: managementId },
+      include: { company: true },
     });
 
-    if (!companyExists) {
+    if (!managementExists) {
       return NextResponse.json(
-        { error: `La compañía con ID ${data.company_id} no existe` },
+        { error: `La jefatura con ID ${managementId} no existe.` },
         { status: 404 }
       );
     }
@@ -226,7 +251,7 @@ export async function POST(req: NextRequest) {
     const filteredData = {
       job_offer: data.job_offer,
       job_offer_description: data.job_offer_description,
-      company_id: data.company_id,
+      management_id: managementId,
       opened_at: data.opened_at ? new Date(data.opened_at) : new Date(), // Usa la fecha actual si no se proporciona
       closed_at: data.closed_at ? new Date(data.closed_at) : null,
       pre_filtered: data.pre_filtered,
@@ -235,6 +260,11 @@ export async function POST(req: NextRequest) {
 
     const newProcess = await prisma.process.create({
       data: filteredData,
+      include: {
+        management: {
+          include: { company: true }, // Incluir la compañía para retornar información adicional
+        },
+      },
     });
 
     return NextResponse.json(newProcess, { status: 201 });

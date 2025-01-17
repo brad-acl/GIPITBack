@@ -71,7 +71,6 @@ model company {
   logo         Bytes?
   management   management[]
   pre_invoices pre_invoices[]
-  process      process[]
 }
 
 model management {
@@ -83,6 +82,7 @@ model management {
   updated_at           DateTime?              @default(now()) @db.Timestamp(6)
   candidate_management candidate_management[]
   company              company?               @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  process              process[]
   users_management     users_management[]
 }
 
@@ -135,15 +135,15 @@ model process {
   id                    Int                 @id @default(autoincrement())
   job_offer             String              @db.VarChar(255)
   job_offer_description String?
-  company_id            Int?
   opened_at             DateTime?           @db.Date
   closed_at             DateTime?           @db.Date
   pre_filtered          Boolean?            @default(false)
   status                String?             @db.VarChar(50)
   created_at            DateTime?           @default(now()) @db.Timestamp(6)
   updated_at            DateTime?           @default(now()) @db.Timestamp(6)
+  management_id         Int?
   candidate_process     candidate_process[]
-  company               company?            @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  management            management?         @relation(fields: [management_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model users {

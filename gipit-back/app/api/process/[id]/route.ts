@@ -119,18 +119,22 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { id } = params;
 
   try {
-    // Consulta para obtener el proceso y los candidatos asociados, incluyendo match_percent
+    // Consulta para obtener el proceso, la jefatura y la compañía asociada
     const process = await prisma.process.findUnique({
       where: { id: parseInt(id) },
       include: {
-        company: {
-          select: {
-            name: true,
-          }
+        management: { // Relación con la jefatura
+          include: {
+            company: { // Relación con la compañía a través de management
+              select: {
+                name: true,
+              },
+            },
+          },
         },
-        candidate_process: {
+        candidate_process: { // Relación con los candidatos
           select: {
-            match_percent: true, // Selecciona el match_percent del candidato
+            match_percent: true,
             stage: true,
             candidates: {
               select: {
@@ -151,7 +155,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Proceso no encontrado' }, { status: 404 });
     }
 
-    // Mapeo de los candidatos para incluir el campo match_percent
+    // Mapeo de los candidatos para incluir `match_percent` y otros datos
     const candidates = process.candidate_process.map((cp) => ({
       id: cp.candidates?.id,
       name: cp.candidates?.name,
@@ -159,14 +163,15 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       phone: cp.candidates?.phone,
       address: cp.candidates?.address,
       jsongpt_text: cp.candidates?.jsongpt_text,
-      match: cp.match_percent ?? 0, // Añadir el porcentaje de compatibilidad desde candidate_process
+      match: cp.match_percent ?? 0,
       stage: cp.stage ?? 'entrevistas',
     }));
 
-    // Crear la respuesta combinada del proceso y los candidatos
+    // Crear la respuesta combinada del proceso, compañía, y candidatos
     return NextResponse.json({
       id: process.id,
-      companyName: process.company?.name ?? 'Sin compañía',
+      companyName: process.management?.company?.name ?? 'Sin compañía',
+      managementName: process.management?.name ?? 'Sin jefatura',
       jobOffer: process.job_offer,
       jobOfferDescription: process.job_offer_description,
       stage: 'Entrevistas',
@@ -177,7 +182,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: `Error al obtener proceso: ${error}` }, { status: 500 });
   }
 }
-
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
   const data = await req.json();
