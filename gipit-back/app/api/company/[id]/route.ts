@@ -184,62 +184,62 @@ export async function PUT(
   }
 }
 
-// DELETE: Eliminar una compañía por ID
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
+// // DELETE: Eliminar una compañía por ID
+// export async function DELETE(
+//   req: Request,
+//   { params }: { params: { id: string } }
+// ) {
+//   const { id } = params;
 
-  try {
-    // Verificamos si la compañía existe
-    const company = await prisma.company.findUnique({
-      where: { id: parseInt(id) },
-      include: {
-        process: {
-          include: {
-            candidate_process: true
-          }
-        }
-      }
-    });
+//   try {
+//     // Verificamos si la compañía existe
+//     const company = await prisma.company.findUnique({
+//       where: { id: parseInt(id) },
+//       include: {
+//         process: {
+//           include: {
+//             candidate_process: true
+//           }
+//         }
+//       }
+//     });
 
-    if (!company) {
-      return NextResponse.json(
-        { error: "Company not found" },
-        { status: 404 }
-      );
-    }
+//     if (!company) {
+//       return NextResponse.json(
+//         { error: "Company not found" },
+//         { status: 404 }
+//       );
+//     }
 
-    // Primero eliminamos solo las relaciones entre candidatos y procesos
-    await prisma.$transaction([
-      // 1. Eliminar las relaciones en candidate_process
-      prisma.candidate_process.deleteMany({
-        where: {
-          process: {
-            company_id: parseInt(id)
-          }
-        }
-      }),
-      // 2. Eliminar los procesos
-      prisma.process.deleteMany({
-        where: { company_id: parseInt(id) }
-      }),
-      // 3. Eliminar la compañía
-      prisma.company.delete({
-        where: { id: parseInt(id) }
-      })
-    ]);
+//     // Primero eliminamos solo las relaciones entre candidatos y procesos
+//     await prisma.$transaction([
+//       // 1. Eliminar las relaciones en candidate_process
+//       prisma.candidate_process.deleteMany({
+//         where: {
+//           process: {
+//             company_id: parseInt(id)
+//           }
+//         }
+//       }),
+//       // 2. Eliminar los procesos
+//       prisma.process.deleteMany({
+//         where: { company_id: parseInt(id) }
+//       }),
+//       // 3. Eliminar la compañía
+//       prisma.company.delete({
+//         where: { id: parseInt(id) }
+//       })
+//     ]);
 
-    return NextResponse.json(
-      { message: "Company deleted successfully. Candidates remain in the database." },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error deleting company:", error);
-    return NextResponse.json(
-      { error: `Error deleting company: ${error}` },
-      { status: 500 }
-    );
-  }
-}
+//     return NextResponse.json(
+//       { message: "Company deleted successfully. Candidates remain in the database." },
+//       { status: 200 }
+//     );
+//   } catch (error) {
+//     console.error("Error deleting company:", error);
+//     return NextResponse.json(
+//       { error: `Error deleting company: ${error}` },
+//       { status: 500 }
+//     );
+//   }
+// }
