@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
 //  * @swagger
@@ -67,16 +67,35 @@ const prisma = new PrismaClient();
 // }
 
 // GET: Obtener todos los usuarios
-export async function GET() {
-  try {
-    const users = await prisma.users.findMany();
-    return NextResponse.json(users, { status: 200 });
-  } catch (error) {
-    return NextResponse.json(
-      { error: `Error fetching users: ${error}` },
-      { status: 500 }
-    );
-  }
+export async function GET(req: NextRequest) {
+    try {
+        const url = new URL(req.url);
+        const page = parseInt(url.searchParams.get("page") || "1");
+        const limit = 15; // Número de usuarios por página
+        const offset = (page - 1) * limit;
+
+        const [users, total] = await Promise.all([
+            prisma.users.findMany({
+                skip: offset,
+                take: limit,
+                include: {
+                    roles: {
+                        select: {
+                            nombre: true,
+                        },
+                    },
+                },
+            }),
+            prisma.users.count(),
+        ]);
+
+        return NextResponse.json({ users, total }, { status: 200 });
+    } catch (error) {
+        return NextResponse.json(
+            { error: `Error fetching users: ${error}` },
+            { status: 500 }
+        );
+    }
 }
 
 // POST: Crear un nuevo usuario
@@ -88,7 +107,7 @@ export async function POST(request: Request) {
     const filteredData = {
       name: data.name,
       email: data.email,
-      role_id: data.role,
+      role_id: data.role_id,
       position: data.position,
     };
 

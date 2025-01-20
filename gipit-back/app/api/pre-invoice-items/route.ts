@@ -4,6 +4,62 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /pre-invoice-items:
+ *   get:
+ *     summary: Obtener lista de todos los ítems de pre-facturas
+ *     tags: [Facturación]
+ *     responses:
+ *       200:
+ *         description: Lista de ítems de pre-facturas obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/PreInvoiceItem'
+ *       500:
+ *         description: Error al procesar la solicitud
+ *   post:
+ *     summary: Crear un nuevo ítem de pre-factura
+ *     tags: [Facturación]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               pre_invoice_id:
+ *                 type: integer
+ *               candidate_id:
+ *                 type: integer
+ *               service:
+ *                 type: string
+ *               rate:
+ *                 type: string
+ *               hours:
+ *                 type: number
+ *               subtotal:
+ *                 type: number
+ *               vat:
+ *                 type: number
+ *               total:
+ *                 type: number
+ *               description:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Ítem de pre-factura creado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PreInvoiceItem'
+ *       500:
+ *         description: Error al crear el ítem de pre-factura
+ */
+
 export async function GET() {
   try {
 

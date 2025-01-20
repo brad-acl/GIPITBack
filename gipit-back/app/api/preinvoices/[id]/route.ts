@@ -5,6 +5,130 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /preinvoices/{id}:
+ *   get:
+ *     summary: Obtener detalles de una factura
+ *     tags: [Facturación]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID de la factura
+ *       - in: query
+ *         name: companyId
+ *         schema:
+ *           type: integer
+ *         description: ID de la compañía para filtrar facturas
+ *       - in: query
+ *         name: userRole
+ *         schema:
+ *           type: string
+ *         description: Rol del usuario
+ *     responses:
+ *       200:
+ *         description: Detalles de la factura obtenidos exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 preInvoice:
+ *                   $ref: '#/components/schemas/PreInvoice'
+ *                 candidates:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Candidate'
+ *       404:
+ *         description: Factura no encontrada
+ *       500:
+ *         description: Error al obtener los detalles de la factura
+ *   put:
+ *     summary: Actualizar una factura
+ *     tags: [Facturación]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID de la factura
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               estimated_date:
+ *                 type: string
+ *                 format: date
+ *               expiration_date:
+ *                 type: string
+ *                 format: date
+ *               total_value:
+ *                 type: number
+ *               description:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *               professionals:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Professional'
+ *               company_id:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Factura actualizada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PreInvoice'
+ *       500:
+ *         description: Error al actualizar la factura
+ *   patch:
+ *     summary: Cambiar el estado de una factura
+ *     tags: [Facturación]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID de la factura
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               action:
+ *                 type: string
+ *                 enum: [approve, reject]
+ *                 description: Acción a realizar (aprobar o rechazar)
+ *     responses:
+ *       200:
+ *         description: Estado de la factura actualizado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 updatedInvoice:
+ *                   $ref: '#/components/schemas/PreInvoice'
+ *       400:
+ *         description: Acción no reconocida
+ *       500:
+ *         description: Error al cambiar el estado de la factura
+ */
+
 // Define un tipo para los profesionales
 interface Professional {
     id: number;
