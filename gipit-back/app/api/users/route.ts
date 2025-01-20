@@ -70,14 +70,19 @@ const prisma = new PrismaClient();
 export async function GET(req: NextRequest) {
     try {
         const url = new URL(req.url);
-        const page = parseInt(url.searchParams.get("page") || "1");
-        const limit = 15; // Número de usuarios por página
-        const offset = (page - 1) * limit;
+        const page = parseInt(url.searchParams.get('page') || '1', 10);
+        const pageSize = 15;
+
+        if (page < 1) {
+          return NextResponse.json({ error: 'El número de página debe ser mayor que 0.' }, { status: 400 });
+        }
+    
+
 
         const [users, total] = await Promise.all([
             prisma.users.findMany({
-                skip: offset,
-                take: limit,
+              skip: (page - 1) * pageSize,
+              take: pageSize,
                 include: {
                     roles: {
                         select: {
