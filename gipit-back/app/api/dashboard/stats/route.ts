@@ -13,25 +13,32 @@ export async function GET(request: Request) {
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
+    // Filtro base para management basado en company_id
+    const managementFilter = companyId ? {
+      management: {
+        company_id: parseInt(companyId)
+      }
+    } : {};
+
     const [activosCount, cerradosCount, cerradostrimestreCount, profesionalesCount] = await Promise.all([
       prisma.process.count({
         where: {
           status: { equals: 'activo', mode: 'insensitive' },
-          company_id: companyId ? parseInt(companyId) : undefined
+          ...managementFilter
         },
       }),
       prisma.process.count({
         where: {
           status: { equals: 'cerrado', mode: 'insensitive' },
           closed_at: { not: null },
-          company_id: companyId ? parseInt(companyId) : undefined
+          ...managementFilter
         },
       }),
       prisma.process.count({
         where: {
           status: { equals: 'cerrado', mode: 'insensitive' },
           closed_at: { gte: threeMonthsAgo },
-          company_id: companyId ? parseInt(companyId) : undefined
+          ...managementFilter
         },
       }),
       prisma.candidates.count({
@@ -53,7 +60,7 @@ export async function GET(request: Request) {
         status: { equals: 'cerrado', mode: 'insensitive' },
         opened_at: { not: null },
         closed_at: { not: null },
-        ...(companyId ? { company_id: parseInt(companyId) } : {}),
+        ...managementFilter,
         AND: [
           {
             closed_at: {
@@ -63,7 +70,7 @@ export async function GET(request: Request) {
         ]
       },
       orderBy: {
-        closed_at: 'desc' // Ordenar por fecha de cierre descendente
+        closed_at: 'desc'
       },
     });
 
@@ -96,7 +103,8 @@ export async function GET(request: Request) {
 
     const ultimoProcesoActivo = await prisma.process.findFirst({
       where: {
-        status: { equals: 'activo', mode: 'insensitive' }
+        status: { equals: 'activo', mode: 'insensitive' },
+        ...managementFilter
       },
       orderBy: { opened_at: 'desc' },
       select: { opened_at: true }
