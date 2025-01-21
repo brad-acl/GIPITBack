@@ -45,6 +45,7 @@ export async function GET(
 
     return NextResponse.json(postSalesActivity);
   } catch (error) {
+    console.error("Error al obtener la actividad de ventas:", error);
     return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }

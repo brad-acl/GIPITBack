@@ -69,7 +69,11 @@ export async function GET(req: NextRequest) {
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: {
-          management: true,
+          management: {
+            include: {
+              company: true,
+            },
+          },
           candidates: true,
         },
         orderBy: {
@@ -85,7 +89,7 @@ export async function GET(req: NextRequest) {
       id: record.id,
       name: record.candidates?.name || '',
       role: record.position || '',
-      client: record.management?.name || '',
+      company: record.management?.company?.name || '',
       start: record.start_date,
       end: record.end_date,
       status: record.status || '',
