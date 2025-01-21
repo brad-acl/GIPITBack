@@ -12,7 +12,7 @@ const options = {
       },
       servers: [
         {
-          url: 'http://localhost:3001/api', // URL base de tu API
+          url: `${process.env.NEXT_PUBLIC_API_URL}/api`, // URL base de tu API
         },
       ],
       components: {
@@ -88,6 +88,37 @@ const options = {
               created_at: { type: 'string', format: 'date-time' },
               updated_at: { type: 'string', format: 'date-time' }
             }
+          },
+          PreInvoice: {
+            type: 'object',
+            properties: {
+              id: { type: 'integer' },
+              estimated_date: { type: 'string', format: 'date' },
+              expiration_date: { type: 'string', format: 'date' },
+              total_value: { type: 'number' },
+              description: { type: 'string' },
+              status: { type: 'string' },
+              company_id: { type: 'integer' },
+              pre_invoice_items: {
+                type: 'array',
+                items: { $ref: '#/components/schemas/PreInvoiceItem' },
+              },
+            },
+          },
+          PreInvoiceItem: {
+            type: 'object',
+            properties: {
+              id: { type: 'integer' },
+              pre_invoice_id: { type: 'integer' },
+              candidate_id: { type: 'integer' },
+              service: { type: 'string' },
+              rate: { type: 'string' },
+              hours: { type: 'number' },
+              subtotal: { type: 'number' },
+              vat: { type: 'number' },
+              total: { type: 'number' },
+              description: { type: 'string' },
+            },
           },
           Error: {
             type: 'object',

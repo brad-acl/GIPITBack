@@ -63,14 +63,15 @@ model comments_process {
 }
 
 model company {
-  id           Int            @id @default(autoincrement())
-  name         String         @db.VarChar(255)
-  description  String?
-  created_at   DateTime?      @default(now()) @db.Timestamp(6)
-  updated_at   DateTime?      @default(now()) @db.Timestamp(6)
-  logo         Bytes?
-  management   management[]
-  pre_invoices pre_invoices[]
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(255)
+  description   String?
+  created_at    DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?       @default(now()) @db.Timestamp(6)
+  logo          Bytes?
+  management    management[]
+  pre_invoices  pre_invoices[]
+  users_company users_company[]
 }
 
 model management {
@@ -154,8 +155,10 @@ model users {
   updated_at       DateTime?          @default(now()) @db.Timestamp(6)
   position         String?            @db.VarChar(255)
   role_id          Int
+  is_active        Boolean            @default(true)
   comments_process comments_process[]
   roles            roles              @relation(fields: [role_id], references: [id], onUpdate: NoAction)
+  users_company    users_company[]
   users_management users_management[]
 }
 
@@ -188,4 +191,14 @@ model roles {
   createdat DateTime? @default(now()) @db.Timestamp(6)
   updatedat DateTime? @default(now()) @db.Timestamp(6)
   users     users[]
+}
+
+model users_company {
+  id         Int       @id @default(autoincrement())
+  user_id    Int?
+  company_id Int?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+  company    company?  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

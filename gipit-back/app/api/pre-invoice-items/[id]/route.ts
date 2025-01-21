@@ -4,6 +4,96 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /pre-invoice-items/{id}:
+ *   get:
+ *     summary: Obtener detalles de un ítem de pre-factura
+ *     tags: [Facturación]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del ítem de pre-factura
+ *     responses:
+ *       200:
+ *         description: Detalles del ítem de pre-factura obtenidos exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PreInvoiceItem'
+ *       404:
+ *         description: Ítem de pre-factura no encontrado
+ *       500:
+ *         description: Error al procesar la solicitud
+ *   put:
+ *     summary: Actualizar un ítem de pre-factura
+ *     tags: [Facturación]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del ítem de pre-factura
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               service:
+ *                 type: string
+ *               rate:
+ *                 type: string
+ *               hours:
+ *                 type: number
+ *               subtotal:
+ *                 type: number
+ *               vat:
+ *                 type: number
+ *               total:
+ *                 type: number
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Ítem de pre-factura actualizado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PreInvoiceItem'
+ *       500:
+ *         description: Error al actualizar el ítem de pre-factura
+ *   delete:
+ *     summary: Eliminar un ítem de pre-factura
+ *     tags: [Facturación]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del ítem de pre-factura
+ *     responses:
+ *       200:
+ *         description: Ítem de pre-factura eliminado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: Ítem de pre-factura no encontrado
+ *       500:
+ *         description: Error al eliminar el ítem de pre-factura
+ */
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
 

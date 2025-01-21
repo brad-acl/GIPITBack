@@ -4,6 +4,100 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /preinvoices:
+ *   get:
+ *     summary: Obtener lista de todas las facturas
+ *     tags: [Facturación]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Número de página para la paginación
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         description: Filtro de búsqueda por nombre de candidato
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filtro por estado de la factura
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: string
+ *         description: Filtro por año de la factura
+ *       - in: query
+ *         name: userRole
+ *         schema:
+ *           type: string
+ *         description: Rol del usuario
+ *       - in: query
+ *         name: companyId
+ *         schema:
+ *           type: integer
+ *         description: ID de la compañía para filtrar facturas
+ *     responses:
+ *       200:
+ *         description: Lista de facturas obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                 batch:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/PreInvoice'
+ *       400:
+ *         description: Número de página inválido
+ *       500:
+ *         description: Error al procesar la solicitud
+ *   post:
+ *     summary: Crear una nueva factura
+ *     tags: [Facturación]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               estimated_date:
+ *                 type: string
+ *                 format: date
+ *               expiration_date:
+ *                 type: string
+ *                 format: date
+ *               total_value:
+ *                 type: number
+ *               description:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *               professionals:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Professional'
+ *               company_id:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Factura creada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PreInvoice'
+ *       500:
+ *         description: Error al crear la factura
+ */
+
 interface ProfessionalData {
   id: number;
   service?: string;
