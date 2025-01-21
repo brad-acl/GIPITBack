@@ -12,7 +12,7 @@ const options = {
       },
       servers: [
         {
-          url: `${process.env.NEXT_PUBLIC_API_URL}/api`, // URL base de tu API
+          url: `${process.env.NEXT_PUBLIC_API_URL}/api/docs`, // URL base de tu API
         },
       ],
       components: {
