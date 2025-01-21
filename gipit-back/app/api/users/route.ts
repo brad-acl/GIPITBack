@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 
 //  * @swagger
 //  * /users:
@@ -68,39 +68,49 @@ const prisma = new PrismaClient();
 
 // GET: Obtener todos los usuarios
 export async function GET(req: NextRequest) {
-    try {
-        const url = new URL(req.url);
-        const page = parseInt(url.searchParams.get('page') || '1', 10);
-        const pageSize = 15;
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const query = searchParams.get('query') || '';
+    const role = searchParams.get('role') || '';
 
-        if (page < 1) {
-          return NextResponse.json({ error: 'El número de página debe ser mayor que 0.' }, { status: 400 });
-        }
-    
+    const whereClause = {
+        AND: [
+            {
+                OR: [
+                    { name: { contains: query, mode: Prisma.QueryMode.insensitive } },
+                    { email: { contains: query, mode: Prisma.QueryMode.insensitive } },
+                    { position: { contains: query, mode: Prisma.QueryMode.insensitive } },
+                ],
+            },
+            role ? { roles: { nombre: role } } : {},
+        ],
+    };
 
+    const pageSize = 15;
 
-        const [users, total] = await Promise.all([
-            prisma.users.findMany({
-              skip: (page - 1) * pageSize,
-              take: pageSize,
-                include: {
-                    roles: {
-                        select: {
-                            nombre: true,
-                        },
-                    },
-                },
-            }),
-            prisma.users.count(),
-        ]);
-
-        return NextResponse.json({ users, total }, { status: 200 });
-    } catch (error) {
-        return NextResponse.json(
-            { error: `Error fetching users: ${error}` },
-            { status: 500 }
-        );
+    if (page < 1) {
+      return NextResponse.json({ error: 'El número de página debe ser mayor que 0.' }, { status: 400 });
     }
+
+    const [users, total] = await Promise.all([
+        prisma.users.findMany({
+          where: whereClause,
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+          include: {
+              roles: {
+                  select: {
+                      nombre: true,
+                  },
+              },
+          },
+        }),
+        prisma.users.count({
+            where: whereClause,
+        }),
+    ]);
+
+    return NextResponse.json({ total, users }, { status: 200 });
 }
 
 // POST: Crear un nuevo usuario

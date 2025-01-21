@@ -45,6 +45,7 @@ export async function PUT(
       email: data.email,
       position: data.position,
       is_active: data.is_active,
+      role_id: data.role_id,
     };
 
     const updatedUser = await prisma.users.update({
