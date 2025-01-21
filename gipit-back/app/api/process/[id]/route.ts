@@ -190,23 +190,62 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (!id || isNaN(Number(id))) {
       return NextResponse.json({ error: 'ID inválido o faltante' }, { status: 400 });
     }
-    // Validar acción especificada en la solicitud
+
     if (data.action === "close") {
-      // Lógica para cerrar el proceso
-      const updatedProcess = await prisma.process.update({
+      // Obtener el proceso con su management y candidatos seleccionados
+      const process = await prisma.process.findUnique({
         where: { id: parseInt(id) },
-        data: {
-          status: "Cerrado", // Cambia el estado a "Cerrado"
-          closed_at: new Date(), // Establece la fecha de cierre
-        },
+        include: {
+          management: true,
+          candidate_process: {
+            where: {
+              stage: "seleccionado"
+            },
+            include: {
+              candidates: true
+            }
+          }
+        }
       });
 
+      if (!process) {
+        return NextResponse.json({ error: 'Proceso no encontrado' }, { status: 404 });
+      }
+
+      // Crear candidate_management para cada candidato seleccionado
+      const candidateManagementPromises = process.candidate_process.map(cp => 
+        prisma.candidate_management.create({
+          data: {
+            candidate_id: cp.candidate_id!,
+            management_id: process.management_id!,
+            status: "Activo",
+            start_date: new Date(),
+            position: process.job_offer // Usar el nombre del cargo del proceso
+          }
+        })
+      );
+
+      // Ejecutar todas las operaciones en una transacción
+      await prisma.$transaction([
+        // Crear los registros de candidate_management
+        ...candidateManagementPromises,
+        // Actualizar el proceso a cerrado
+        prisma.process.update({
+          where: { id: parseInt(id) },
+          data: {
+            status: "Cerrado",
+            closed_at: new Date(),
+          }
+        })
+      ]);
+
       return NextResponse.json({
-        message: "Proceso cerrado con éxito",
-        updatedProcess,
+        message: "Proceso cerrado y candidatos seleccionados convertidos a profesionales exitosamente",
+        route: "/process"
       });
     }
-    // Actualizar el proceso en la base de datos con solo la descripción de la oferta de trabajo
+
+    // Resto del código para otras actualizaciones...
     const updatedProcess = await prisma.process.update({
       where: { id: parseInt(id) },
       data: {
