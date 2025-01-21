@@ -71,7 +71,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     // Extraer datos de candidate_process (tomando el primer proceso, asumiendo que hay uno solo)
     const candidateProcess = candidate.candidate_process.length > 0 ? candidate.candidate_process[0] : null;
 
+    const notaDelCliente = candidateProcess?.client_comments
+    ? JSON.parse(candidateProcess.client_comments) : '';
+
     const response = {
+      candidateProcessId: candidateProcess?.id,
       name: candidate.name,
       match: candidateProcess?.match_percent ?? 0, // Porcentaje de compatibilidad
       // totalExperience: candidateProcess?.total_experience// Si existe una propiedad para experiencia total, aquí debes ajustarla
@@ -79,14 +83,16 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       phone: candidate.phone ?? '',
       address: candidate.address ?? '',
       sumary: candidate.jsongpt_text ?? '', // Resumen del candidato
-      techSkills: candidateProcess?.technical_skills ?? '', // Habilidades técnicas
-      softSkills: candidateProcess?.soft_skills ?? '', // Habilidades blandas
       clientNote: {
-        comment: candidateProcess?.client_comments ?? '',
+        comment: notaDelCliente?.comment ?? '',
+        techSkills: notaDelCliente?.techSkills ?? '',
+        softSkills: notaDelCliente?.softSkills ?? '',
       },
       total_experience: candidate?.total_experience ?? '',
       stage: candidateProcess?.stage ?? '',
     };
+
+    console.log("Candidate Details desde back -->", response);
 
     return NextResponse.json(response);
   } catch (error) {
