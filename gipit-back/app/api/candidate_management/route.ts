@@ -77,11 +77,14 @@ export async function GET(req: NextRequest) {
  *         description: Error al crear el registro de gestión de candidato
  */
 export async function POST(req: NextRequest) {
-  const { candidate_id, management_id, status, start_date, end_date } = await req.json();
+  const { candidate_id, management_id, status, start_date, end_date, position, rate } = await req.json();
 
   try {
-
-
+    if (!rate || !position) {
+      return NextResponse.json({ 
+        error: 'El valor hora y el cargo son campos requeridos' 
+      }, { status: 400 });
+    }
 
     const candidateManagement = await prisma.candidate_management.create({
       data: {
@@ -90,10 +93,12 @@ export async function POST(req: NextRequest) {
         status,
         start_date,
         end_date,
+        position,
+        rate: parseFloat(rate)
       },
     });
     return NextResponse.json(candidateManagement, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: `Error fetching data - ${error}` }, { status: 500 });
+    return NextResponse.json({ error: `Error al crear el registro - ${error}` }, { status: 500 });
   }
 }
