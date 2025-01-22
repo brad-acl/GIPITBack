@@ -98,11 +98,16 @@ export async function GET(req: NextRequest) {
           skip: (page - 1) * pageSize,
           take: pageSize,
           include: {
-              roles: {
-                  select: {
-                      nombre: true,
-                  },
-              },
+              roles: true,
+              users_company: {
+                  include: {
+                      company: {
+                          select: {
+                              name: true
+                          }
+                      }
+                  }
+              }
           },
         }),
         prisma.users.count({
