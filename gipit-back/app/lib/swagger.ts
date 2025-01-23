@@ -12,7 +12,10 @@ const options = {
       },
       servers: [
         {
-          url: `${process.env.NEXT_PUBLIC_API_URL}/api/docs`, // URL base de tu API
+          url: process.env.NODE_ENV === 'development' 
+            ? 'http://localhost:3001'
+            : 'https://gipit-back.vercel.app',
+          description: process.env.NODE_ENV === 'development' ? 'Desarrollo' : 'Producción'
         },
       ],
       components: {
@@ -129,7 +132,12 @@ const options = {
         },
       },
     },
-    apis: ['./app/api/**/*.ts'],
+    apis: [
+      './app/api/**/*.ts',
+      './app/api/**/*.js', // Incluir archivos JS compilados
+      './pages/api/**/*.ts',
+      './pages/api/**/*.js'
+    ],
   };
   
   const swaggerSpec = swaggerJsdoc(options);
