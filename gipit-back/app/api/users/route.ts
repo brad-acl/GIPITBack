@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient} from "@prisma/client";
 
 //  * @swagger
 //  * /users:
@@ -44,78 +44,90 @@ import { PrismaClient, Prisma } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// export async function POST(req: NextRequest) {
-//   try {
-//     // Verificación opcional de token solo si se envía
-//     const tokenVerificationResult = verifyToken(req);
-//     if (tokenVerificationResult.valid === false && tokenVerificationResult.error !== 'Token not provided.') {
-//       return NextResponse.json({ error: tokenVerificationResult.error }, { status: 403 });
-//     }
-
-//     const { name, email, role, avatar } = await req.json();
-//     const user = await prisma.users.create({
-//       data: { name, email, role, avatar },
-//     });
-
-//     // Genera un token para el nuevo usuario basado en su rol
-//     const token = jwt.sign({ userId: user.id, role: user.role }, jwtSecret, { expiresIn: '1h' });
-
-//     return NextResponse.json({ ...user, token }, { status: 201 });
-//   } catch (error) {
-//     return NextResponse.json({ error: `Error creating user - ${error}` }, { status: 500 });
-//   }
-// }
+interface WhereClause {
+  OR?: {
+    name?: { contains: string; mode: 'insensitive' };
+    email?: { contains: string; mode: 'insensitive' };
+    position?: { contains: string; mode: 'insensitive' };
+  }[];
+  roles?: {
+    nombre: string;
+  };
+  users_management?: {
+    some: {
+      management: {
+        company_id: number;
+      };
+    };
+  };
+}
 
 // GET: Obtener todos los usuarios
 export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const query = searchParams.get('query') || '';
-    const role = searchParams.get('role') || '';
-
-    const whereClause = {
-        AND: [
-            {
-                OR: [
-                    { name: { contains: query, mode: Prisma.QueryMode.insensitive } },
-                    { email: { contains: query, mode: Prisma.QueryMode.insensitive } },
-                    { position: { contains: query, mode: Prisma.QueryMode.insensitive } },
-                ],
-            },
-            role ? { roles: { nombre: role } } : {},
-        ],
-    };
-
+  try {
+    const url = new URL(req.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const query = url.searchParams.get('query') || '';
+    const role = url.searchParams.get('role') || '';
+    const company = url.searchParams.get('company') || '';
     const pageSize = 15;
 
-    if (page < 1) {
-      return NextResponse.json({ error: 'El número de página debe ser mayor que 0.' }, { status: 400 });
+    const where: WhereClause = {};
+
+    if (query) {
+      where.OR = [
+        { name: { contains: query, mode: 'insensitive' } },
+        { email: { contains: query, mode: 'insensitive' } },
+        { position: { contains: query, mode: 'insensitive' } }
+      ];
     }
 
-    const [users, total] = await Promise.all([
-        prisma.users.findMany({
-          where: whereClause,
-          skip: (page - 1) * pageSize,
-          take: pageSize,
-          include: {
-              roles: true,
-              users_company: {
-                  include: {
-                      company: {
-                          select: {
-                              name: true
-                          }
-                      }
-                  }
-              }
-          },
-        }),
-        prisma.users.count({
-            where: whereClause,
-        }),
-    ]);
+    if (role) {
+      where.roles = {
+        nombre: role
+      };
+    }
 
-    return NextResponse.json({ total, users }, { status: 200 });
+    if (company) {
+      where.users_management = {
+        some: {
+          management: {
+            company_id: parseInt(company)
+          }
+        }
+      };
+    }
+
+    const users = await prisma.users.findMany({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      where,
+      include: {
+        roles: true,
+        users_management: {
+          include: {
+            management: {
+              include: {
+                company: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const total = await prisma.users.count({ where });
+
+    return NextResponse.json({
+      users,
+      total
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: `Error fetching users: ${error}` },
+      { status: 500 }
+    );
+  }
 }
 
 // POST: Crear un nuevo usuario
