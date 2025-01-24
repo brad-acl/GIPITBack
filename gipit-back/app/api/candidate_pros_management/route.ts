@@ -164,8 +164,9 @@ export async function POST(req: NextRequest) {
       const evalComunicacion = Number(curr.eval_comunicacion) || 0;
       const evalMotivacion = Number(curr.eval_motivacion) || 0;
       const evalCumplimiento = Number(curr.eval_cumplimiento) || 0;
-    
-      const evalAvg = (evalStack + evalComunicacion + evalMotivacion + evalCumplimiento) / 4;
+      
+      const evalAvg = (evalStack + evalComunicacion + 
+                      evalMotivacion + evalCumplimiento) / 4;
       return acc + evalAvg;
     }, 0) / allEvaluations.length;
 
