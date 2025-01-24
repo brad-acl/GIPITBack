@@ -98,7 +98,7 @@ model post_sales_activities {
   eval_stack              Int?                  @default(0)
   eval_comunicacion       Int?
   eval_motivacion         Int?
-  eval_cumplimiento       Int?
+  eval_cumplimiento       Decimal?              @db.Decimal(10, 2)
   acciones_acl            String?
   proyecction             String?
   candidate_management    candidate_management? @relation(fields: [candidate_management_id], references: [id], onDelete: NoAction, onUpdate: NoAction)

@@ -84,3 +84,55 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+
+export async function PUT(req: NextRequest) {
+  try {
+    const { candidateProcessId, techSkills, softSkills, comment } = await req.json();
+
+    if (!candidateProcessId) {
+      return NextResponse.json(
+        { error: "El ID del candidato es requerido." },
+        { status: 400 }
+      );
+    }
+
+    // Obtener los comentarios existentes
+    const existingProcess = await prisma.candidate_process.findUnique({
+      where: { id: candidateProcessId },
+    });
+
+    if (!existingProcess) {
+      return NextResponse.json(
+        { error: "No se encontró el proceso del candidato." },
+        { status: 404 }
+      );
+    }
+
+    // Actualizar los campos
+    const updatedComments = {
+      ...(existingProcess.client_comments ? JSON.parse(existingProcess.client_comments) : {}),
+      ...(techSkills && { techSkills }),
+      ...(softSkills && { softSkills }),
+      ...(comment && { comment }),
+    };
+
+    const updatedProcess = await prisma.candidate_process.update({
+      where: { id: candidateProcessId },
+      data: {
+        client_comments: JSON.stringify(updatedComments),
+      },
+    });
+
+    return NextResponse.json({
+      message: "Nota actualizada exitosamente.",
+      updatedProcess,
+    });
+  } catch (error) {
+    console.error("Error al actualizar la nota:", error);
+    return NextResponse.json(
+      { error: "Error interno del servidor." },
+      { status: 500 }
+    );
+  }
+}
