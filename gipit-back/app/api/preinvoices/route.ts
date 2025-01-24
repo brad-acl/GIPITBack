@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 
 const prisma = new PrismaClient();
@@ -118,6 +118,17 @@ export async function GET(req: NextRequest) {
     const year = url.searchParams.get('year') || '';
     const userRole = searchParams.get('userRole');
     const companyId = searchParams.get('companyId');
+    const managementId = searchParams.get('managementId');
+
+    console.log('Parámetros de búsqueda:', {
+      page,
+      query,
+      status,
+      year,
+      userRole,
+      companyId,
+      managementId
+    });
 
     const pageSize = 15;
 
@@ -128,37 +139,26 @@ export async function GET(req: NextRequest) {
     console.log('userRole:', userRole);
     console.log('companyId:', companyId);
 
-    interface WhereClause {
-      company_id?: number;
-      OR?: Array<{
-        pre_invoice_items: {
-          some: {
-            candidates: {
-              is: {
-                name: {
-                  contains: string;
-                  mode: 'insensitive';
-                };
-              };
-            };
-          };
-        };
-      }>;
-      status?: string;
-      estimated_date?: {
-        gte: Date;
-        lt: Date;
-      };
-      // Puedes agregar aquí más propiedades para otros filtros si los necesitas
-    }
+    const whereClause: Prisma.pre_invoicesWhereInput = {};
     
-    // Y luego usarlo así:
-    const whereClause: WhereClause = {};
-    
-    if (userRole === 'client' && companyId) {
+    // Filtro por compañía
+    if (userRole === 'Cliente-Gerente' && companyId) {
       whereClause.company_id = parseInt(companyId);
+    } else if (userRole === 'client' && managementId) {
+      whereClause.pre_invoice_items = {
+        some: {
+          candidates: {
+            candidate_management: {
+              some: {
+                management_id: parseInt(managementId)
+              }
+            }
+          }
+        }
+      };
     }
     
+    // Otros filtros
     if (query) {
       whereClause.OR = [
         {
@@ -168,7 +168,7 @@ export async function GET(req: NextRequest) {
                 is: {
                   name: {
                     contains: query,
-                    mode: 'insensitive' as const,
+                    mode: 'insensitive',
                   },
                 },
               },
