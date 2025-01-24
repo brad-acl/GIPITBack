@@ -160,10 +160,10 @@ export async function POST(req: NextRequest) {
     console.log('Evaluaciones encontradas:', allEvaluations.length); // Log para debug
 
     const avgRate = allEvaluations.reduce((acc, curr) => {
-      const evalStack = curr.eval_stack || 0;
-      const evalComunicacion = curr.eval_comunicacion || 0;
-      const evalMotivacion = curr.eval_motivacion || 0;
-      const evalCumplimiento = curr.eval_cumplimiento || 0;
+      const evalStack = Number(curr.eval_stack) || 0;
+      const evalComunicacion = Number(curr.eval_comunicacion) || 0;
+      const evalMotivacion = Number(curr.eval_motivacion) || 0;
+      const evalCumplimiento = Number(curr.eval_cumplimiento) || 0;
       
       const evalAvg = (evalStack + evalComunicacion + 
                       evalMotivacion + evalCumplimiento) / 4;
