@@ -135,6 +135,11 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
 
+    // Validar que el role_id sea válido
+    if (!data.role_id) {
+      data.role_id = 6; // Asignar rol de cliente por defecto si no se especifica
+    }
+
     // Filtrar los datos para incluir solo los campos válidos
     const filteredData = {
       name: data.name,
@@ -145,6 +150,9 @@ export async function POST(request: Request) {
 
     const newUser = await prisma.users.create({
       data: filteredData,
+      include: {
+        roles: true // Incluir información del rol en la respuesta
+      }
     });
 
     return NextResponse.json(newUser, { status: 201 });
