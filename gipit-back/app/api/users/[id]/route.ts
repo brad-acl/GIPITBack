@@ -17,6 +17,20 @@ export async function GET(
             nombre: true,
           },
         },
+        users_company: {
+          include: {
+            company: true
+          }
+        },
+        users_management: {
+          include: {
+            management: {
+              include: {
+                company: true
+              }
+            }
+          }
+        }
       },
     });
     if (!user)
