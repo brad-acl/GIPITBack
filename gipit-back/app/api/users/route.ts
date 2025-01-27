@@ -108,7 +108,20 @@ export async function GET(req: NextRequest) {
           include: {
             management: {
               include: {
-                company: true
+                company: {
+                  select: {
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        users_company: {
+          include: {
+            company: {
+              select: {
+                name: true
               }
             }
           }
