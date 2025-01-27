@@ -45,6 +45,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         },
         post_sales_activities: {  // Incluimos las actividades de post venta
           select: {
+            id:true,
             date: true,
             eval_stack: true,         // Evaluación de stack
             eval_comunicacion: true, // Evaluación de comunicación
