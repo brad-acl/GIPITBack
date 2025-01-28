@@ -77,7 +77,9 @@ export async function GET(req: NextRequest) {
  *         description: Error al crear el registro de gestión de candidato
  */
 export async function POST(req: NextRequest) {
-  const { candidate_id, management_id, status, start_date, end_date, position, rate } = await req.json();
+  const { candidate_id, management_id, start_date, end_date, position, rate } = await req.json();
+
+  const status = end_date ? "activo" : "desvinculado";
 
   try {
     if (!rate || !position) {
@@ -99,6 +101,7 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(candidateManagement, { status: 201 });
   } catch (error) {
+    console.error("Error al crear la relación con management:", error);
     return NextResponse.json({ error: `Error al crear el registro - ${error}` }, { status: 500 });
   }
 }

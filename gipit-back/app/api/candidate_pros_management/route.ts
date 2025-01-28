@@ -14,7 +14,6 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1', 10);
     const query = searchParams.get('query') || '';
     const status = searchParams.get('status') || '';
-    const userRole = searchParams.get('userRole');
     const companyId = searchParams.get('companyId');
     const pageSize = 15;
 
@@ -40,7 +39,7 @@ export async function GET(req: NextRequest) {
       }>;
     } = { AND: [] };
 
-    if (userRole === 'client' && companyId) {
+    if (companyId) {
       whereClause.AND.push({
         management: {
           company_id: parseInt(companyId)
