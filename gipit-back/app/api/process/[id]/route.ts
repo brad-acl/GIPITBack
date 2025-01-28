@@ -212,6 +212,16 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         return NextResponse.json({ error: 'Proceso no encontrado' }, { status: 404 });
       }
 
+      // Validar si hay al menos un candidato seleccionado
+      if (process.candidate_process.length === 0) {
+        return NextResponse.json(
+          {
+            error: "No se puede cerrar el proceso. Debe haber al menos un candidato seleccionado.",
+          },
+          { status: 400 }
+        );
+      }
+
       // Crear candidate_management para cada candidato seleccionado
       const candidateManagementPromises = process.candidate_process.map(cp => 
         prisma.candidate_management.create({
