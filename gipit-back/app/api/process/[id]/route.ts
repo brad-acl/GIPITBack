@@ -259,7 +259,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const updatedProcess = await prisma.process.update({
       where: { id: parseInt(id) },
       data: {
-        job_offer: data.job_offer,
+        job_offer: data.name,
         job_offer_description: data.job_offer_description,
         opened_at: data.opened_at ? new Date(data.opened_at) : undefined,
         closed_at: data.closed_at ? new Date(data.closed_at) : undefined,

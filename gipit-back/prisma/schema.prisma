@@ -157,6 +157,7 @@ model users {
   role_id          Int
   is_active        Boolean            @default(true)
   comments_process comments_process[]
+  notifications    notifications[]
   roles            roles              @relation(fields: [role_id], references: [id], onUpdate: NoAction)
   users_company    users_company[]
   users_management users_management[]
@@ -201,4 +202,18 @@ model users_company {
   updated_at DateTime? @default(now()) @db.Timestamp(6)
   company    company?  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   users      users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model notifications {
+  id              Int       @id @default(autoincrement())
+  user_id         Int
+  type            String?   @db.VarChar(50)
+  title           String?   @db.VarChar(100)
+  message         String?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  expiration_date DateTime? @db.Timestamp(6)
+  is_read         Boolean?  @default(false)
+  url             String?   @db.VarChar(255)
+  priority        String?   @db.VarChar(10)
+  users           users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
