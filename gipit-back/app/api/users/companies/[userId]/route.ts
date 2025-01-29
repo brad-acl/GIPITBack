@@ -3,6 +3,32 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /users/companies/{userId}:
+ *   get:
+ *     summary: Obtener las compañías asociadas a un usuario por ID de usuario
+ *     tags: [Administración de Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del usuario
+ *     responses:
+ *       200:
+ *         description: Lista de compañías del usuario obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Company'
+ *       500:
+ *         description: Error al obtener las compañías del usuario
+ */
+
 export async function GET(
   request: Request,
   { params }: { params: { userId: string } }

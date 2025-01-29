@@ -3,6 +3,32 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /users/byEmail/{email}:
+ *   get:
+ *     summary: Obtener un usuario por su email
+ *     tags: [AdministraciÃ³n de Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Email del usuario
+ *     responses:
+ *       200:
+ *         description: Usuario obtenido exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error al obtener el usuario
+ */
+
 export async function GET(
   req: Request,
   { params }: { params: { email: string } }

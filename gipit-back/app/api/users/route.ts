@@ -1,48 +1,82 @@
 import { NextResponse, NextRequest } from "next/server";
-import { PrismaClient} from "@prisma/client";
-
-//  * @swagger
-//  * /users:
-//  *   post:
-//  *     summary: Crear un nuevo usuario
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             type: object
-//  *             properties:
-//  *               name:
-//  *                 type: string
-//  *               email:
-//  *                 type: string
-//  *               role:
-//  *                 type: string
-//  *               avatar:
-//  *                 type: string
-//  *     responses:
-//  *       201:
-//  *         description: Usuario creado exitosamente
-//  *       500:
-//  *         description: Error al crear el usuario
-//  */
-
-//  * @swagger
-//  * /users:
-//  *   get:
-//  *     summary: Obtener todos los usuarios
-//  *     responses:
-//  *       200:
-//  *         description: Lista de usuarios
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: array
-//  *               items:
-//  *                 $ref: '#/components/schemas/User'
-//  */
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Obtener todos los usuarios
+ *     tags: [Administración de Usuarios]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Número de página para paginación
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         description: Término de búsqueda para filtrar usuarios por nombre, email o posición
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *         description: Filtrar usuarios por rol
+ *       - in: query
+ *         name: company
+ *         schema:
+ *           type: string
+ *         description: Filtrar usuarios por ID de compañía
+ *     responses:
+ *       200:
+ *         description: Lista de usuarios obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *                 total:
+ *                   type: integer
+ *       500:
+ *         description: Error al obtener los usuarios
+ *   post:
+ *     summary: Crear un nuevo usuario
+ *     tags: [Administración de Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               role_id:
+ *                 type: integer
+ *               position:
+ *                 type: string
+ *             required:
+ *               - name
+ *               - email
+ *     responses:
+ *       201:
+ *         description: Usuario creado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Error al crear el usuario
+ */
 
 interface WhereClause {
   OR?: {
