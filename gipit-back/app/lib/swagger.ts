@@ -15,8 +15,10 @@ const options = {
           url: process.env.NODE_ENV === 'development' 
             ? 'http://localhost:3001'
             : 'https://gipit-back.vercel.app',
-          description: process.env.NODE_ENV === 'development' ? 'Desarrollo' : 'Producción'
-        },
+          description: process.env.NODE_ENV === 'development' 
+            ? 'Servidor de desarrollo'
+            : 'Servidor de producción'
+        }
       ],
       components: {
         schemas: {
@@ -132,14 +134,9 @@ const options = {
         },
       },
     },
-    apis: [
-      './app/api/**/*.ts',
-      './app/api/**/*.js', // Incluir archivos JS compilados
-      './pages/api/**/*.ts',
-      './pages/api/**/*.js'
-    ],
-  };
+    apis: ['./app/api/**/*.ts']
+};
   
-  const swaggerSpec = swaggerJsdoc(options);
+const swaggerSpec = swaggerJsdoc(options);
   
-  export { swaggerUi, swaggerSpec };
+export { swaggerUi, swaggerSpec };

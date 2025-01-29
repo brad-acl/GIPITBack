@@ -38,43 +38,16 @@ type TokenVerificationResult =
 // };
 
 // Middleware principal con manejo de CORS
-export function middleware(req: NextRequest) {
+export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
-  // Configuración de CORS
-  const origin = req.headers.get("origin");
-
-  if (req.method === "OPTIONS") {
-    //responde a preflights requests
-    const preflightResponse = new NextResponse(null, { status: 204 });
-    preflightResponse.headers.set("Access-Control-Allow-Origin", "*");
-    preflightResponse.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-    );
-    preflightResponse.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
-    preflightResponse.headers.set("Access-Control-Allow-Credentials", "true");
-    return preflightResponse;
-  }
-
-  // Configura los encabezados de CORS para otras solicitudes
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-  );
-  response.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
-  response.headers.set("Access-Control-Allow-Credentials", "true");
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   return response;
 }
 
 export const config = {
-  matcher: "/api/:path*", // Aplica el middleware a las rutas /api
+  matcher: '/api/:path*',
 };
