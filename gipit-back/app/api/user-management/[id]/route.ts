@@ -3,6 +3,83 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /user-management/{id}:
+ *   get:
+ *     summary: Obtener detalles de administración de usuarios por ID de administración
+ *     tags: [Administración de Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la administración
+ *     responses:
+ *       200:
+ *         description: Detalles de la administración de usuarios obtenidos exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/UserManagementDetail'
+ *       500:
+ *         description: Error al obtener los detalles de la administración de usuarios
+ *   put:
+ *     summary: Actualizar una administración de usuarios existente
+ *     tags: [Administración de Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la administración a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user_id:
+ *                 type: integer
+ *               management_id:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Administración de usuarios actualizada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserManagement'
+ *       500:
+ *         description: Error al actualizar la administración de usuarios
+ *   delete:
+ *     summary: Eliminar una administración de usuarios existente
+ *     tags: [Administración de Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la administración a eliminar
+ *     responses:
+ *       200:
+ *         description: Administración de usuarios eliminada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Error al eliminar la administración de usuarios
+ */
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }
@@ -110,7 +187,7 @@ export async function DELETE(
       where: { id: parseInt(id) },
     });
     return NextResponse.json(
-      { message: "User management deleted successfully" },
+      { message: "Administración de usuarios eliminada exitosamente" },
       { status: 200 }
     );
   } catch (error) {
