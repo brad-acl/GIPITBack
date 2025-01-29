@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
  * /users/byEmail/{email}:
  *   get:
  *     summary: Obtener un usuario por su email
- *     tags: [AdministraciÃ³n de Usuarios]
+ *     tags: [Administración de Usuarios]
  *     parameters:
  *       - in: path
  *         name: email

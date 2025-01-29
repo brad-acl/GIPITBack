@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
  * /users/management/{id}:
  *   get:
  *     summary: Obtener las administraciones de usuarios por ID de usuario
- *     tags: [AdministraciÃ³n de Usuarios]
+ *     tags: [Administración de Usuarios]
  *     parameters:
  *       - in: path
  *         name: id
