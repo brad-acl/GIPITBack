@@ -117,7 +117,7 @@ export async function PUT(
     const data = await req.json();
     console.log('Datos recibidos:', data);
     const userId = parseInt(id);
-    
+
     // Obtener el usuario actual para verificar su rol anterior
     const currentUser = await prisma.users.findUnique({
       where: { id: userId },
@@ -146,24 +146,45 @@ export async function PUT(
         await prisma.users_management.create({
           data: {
             user_id: userId,
-            management_id: data.management_id,
-          },
+            management_id: parseInt(data.management_id)
+          }
         });
       }
     }
 
-    // Actualizar el rol del usuario
+    // Cliente a Cliente-Gerente (role_id: 2 -> 6)
+    if (currentUser.role_id === 2 && data.role_id === 6) {
+      // Eliminar relación users_management
+      await prisma.users_management.deleteMany({
+        where: { user_id: userId }
+      });
+      // Crear relación users_company
+      if (data.company_id) {
+        await prisma.users_company.create({
+          data: {
+            user_id: userId,
+            company_id: parseInt(data.company_id)
+          }
+        });
+      }
+    }
+
+    // Actualizar usuario
     const updatedUser = await prisma.users.update({
       where: { id: userId },
       data: {
+        name: data.name,
+        email: data.email,
+        position: data.position,
+        is_active: data.is_active,
         role_id: data.role_id,
-      },
+      }
     });
 
     return NextResponse.json(updatedUser, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { error: `Error updating user management: ${error}` },
+      { error: `Error actualizando usuario: ${error}` },
       { status: 500 }
     );
   }
