@@ -117,7 +117,7 @@ export async function PUT(
     const data = await req.json();
     console.log('Datos recibidos:', data);
     const userId = parseInt(id);
-
+    
     // Obtener el usuario actual para verificar su rol anterior
     const currentUser = await prisma.users.findUnique({
       where: { id: userId },
@@ -151,7 +151,6 @@ export async function PUT(
         });
       }
     }
-
     // Cliente a Cliente-Gerente (role_id: 2 -> 6)
     if (currentUser.role_id === 2 && data.role_id === 6) {
       // Eliminar relación users_management
@@ -164,10 +163,24 @@ export async function PUT(
           data: {
             user_id: userId,
             company_id: parseInt(data.company_id)
-          }
+          } 
         });
       }
     }
+
+            // Cliente actualizacion jefatura
+            if (currentUser.role_id === 2 && data.role_id === 2) {
+              
+              // Si se proporciona management_id, crear relación users_management
+              if (data.management_id) {
+                await prisma.users_management.updateMany({
+                  data: {
+                    user_id: userId,
+                    management_id: parseInt(data.management_id)
+                  }
+                });
+              }
+            }
 
     // Actualizar usuario
     const updatedUser = await prisma.users.update({
