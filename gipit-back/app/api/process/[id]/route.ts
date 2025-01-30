@@ -176,6 +176,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       jobOfferDescription: process.job_offer_description,
       stage: 'Entrevistas',
       candidates,
+      status: process.status ?? 'Pendiente',
     });
   } catch (error) {
     console.error('Error al obtener proceso:', error);
