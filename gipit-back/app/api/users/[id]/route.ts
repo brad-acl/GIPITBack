@@ -1,8 +1,71 @@
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /users/{id}:
+ *   put:
+ *     summary: Actualizar un usuario existente
+ *     tags: [Administración de Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del usuario a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               role_id:
+ *                 type: integer
+ *               management_id:
+ *                 type: integer
+ *             required:
+ *               - role_id
+ *               - management_id
+ *     responses:
+ *       200:
+ *         description: Usuario actualizado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: role_id y management_id son requeridos
+ *       404:
+ *         description: Usuario o administración no encontrados
+ *       500:
+ *         description: Error al actualizar el usuario
+ *   delete:
+ *     summary: Eliminar un usuario existente
+ *     tags: [Administración de Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del usuario a eliminar
+ *     responses:
+ *       200:
+ *         description: Usuario eliminado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Error al eliminar el usuario
+ */
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }
@@ -83,47 +146,24 @@ export async function PUT(
         await prisma.users_management.create({
           data: {
             user_id: userId,
-            management_id: parseInt(data.management_id)
-          }
+            management_id: data.management_id,
+          },
         });
       }
     }
 
-    // Cliente a Cliente-Gerente (role_id: 2 -> 6)
-    if (currentUser.role_id === 2 && data.role_id === 6) {
-      // Eliminar relación users_management
-      await prisma.users_management.deleteMany({
-        where: { user_id: userId }
-      });
-
-      // Crear relación users_company
-      if (data.company_id) {
-        await prisma.users_company.create({
-          data: {
-            user_id: userId,
-            company_id: parseInt(data.company_id)
-          }
-        });
-      }
-    }
-
-    // Actualizar usuario
+    // Actualizar el rol del usuario
     const updatedUser = await prisma.users.update({
       where: { id: userId },
       data: {
-        name: data.name,
-        email: data.email,
-        position: data.position,
-        is_active: data.is_active,
-        role_id: data.role_id
-      }
+        role_id: data.role_id,
+      },
     });
 
     return NextResponse.json(updatedUser, { status: 200 });
   } catch (error) {
-    console.error('Error completo:', error);
     return NextResponse.json(
-      { error: `Error actualizando usuario: ${error}` },
+      { error: `Error updating user management: ${error}` },
       { status: 500 }
     );
   }
@@ -140,7 +180,7 @@ export async function DELETE(
       where: { id: parseInt(id) },
     });
     return NextResponse.json(
-      { message: "User deleted successfully" },
+      { message: "Usuario eliminado exitosamente" },
       { status: 200 }
     );
   } catch (error) {
