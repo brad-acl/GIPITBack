@@ -93,6 +93,7 @@ export async function GET(req: NextRequest) {
       end: record.end_date,
       status: record.status || '',
       rate: record.rate || 0,
+      management: record.management?.name || '',
     }));
 
     return NextResponse.json({

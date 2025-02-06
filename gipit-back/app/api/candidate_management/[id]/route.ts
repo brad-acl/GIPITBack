@@ -40,6 +40,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Registro de gestión de candidato no encontrado' }, { status: 404 });
     }
 
+    console.log("Backend - GET /candidate_management/{id}", candidateManagement);
+
     return NextResponse.json(candidateManagement);
   } catch (error) {
     return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
