@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     const query = searchParams.get('query') || '';
     const status = searchParams.get('status') || '';
     const companyId = searchParams.get('companyId');
+    const managementId = searchParams.get('managementId');  // Nuevo parámetro
     const pageSize = 15;
 
     if (page < 1) {
@@ -27,7 +28,8 @@ export async function GET(req: NextRequest) {
     const whereClause: {
       AND: Array<{
         management?: {
-          company_id: number;
+          company_id?: number;
+          id?: number;
         };
         candidates?: {
           name: {
@@ -44,6 +46,14 @@ export async function GET(req: NextRequest) {
         management: {
           company_id: parseInt(companyId)
         }
+      });
+    }
+
+    if (managementId) {
+      whereClause.AND.push({
+        management: {
+          id: parseInt(managementId),
+        },
       });
     }
 
