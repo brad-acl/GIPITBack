@@ -117,6 +117,7 @@ export async function GET(req: NextRequest) {
     const page = parseInt(url.searchParams.get('page') || '1', 10);
     const query = url.searchParams.get('query') || '';
     const companyId = url.searchParams.get('companyId') || '';
+    const managementId = url.searchParams.get("managementId");
     const status = url.searchParams.get('status') || '';
     const userRole = url.searchParams.get('userRole') || ''; // Nuevo parámetro
     const userCompanyId = url.searchParams.get('userCompanyId') || ''; // Nuevo parámetro
@@ -153,6 +154,10 @@ export async function GET(req: NextRequest) {
       where.management = {
         company_id: parseInt(companyId),
       };
+    }
+
+    if (managementId) {
+      where.management_id = parseInt(managementId);
     }
     
     // Agregar el filtro de `status` si está presente
