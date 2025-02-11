@@ -89,11 +89,15 @@ interface WhereClause {
   };
   users_management?: {
     some: {
-      management: {
-        company_id: number;
-      };
+      id?: number;
+      company_id?: number;
     };
   };
+  users_company?: {
+    some: {
+      company_id: number
+    }
+  }
 }
 
 // GET: Obtener todos los usuarios
@@ -103,8 +107,10 @@ export async function GET(req: NextRequest) {
     const page = parseInt(url.searchParams.get('page') || '1');
     const query = url.searchParams.get('query') || '';
     const role = url.searchParams.get('role') || '';
-    const company = url.searchParams.get('company') || '';
+    const companyId = url.searchParams.get('companyId') || '';
+    const managementId = url.searchParams.get('managementId') || '';  // Nuevo filtro
     const pageSize = 15;
+    
 
     const where: WhereClause = {};
 
@@ -122,15 +128,26 @@ export async function GET(req: NextRequest) {
       };
     }
 
-    if (company) {
-      where.users_management = {
-        some: {
-          management: {
-            company_id: parseInt(company)
-          }
-        }
-      };
-    }
+    // Filtro por jefatura o compañía
+    // if (managementId || companyId) {
+    //   where.users_management = {
+    //     some: {
+    //       ...(managementId && { id: parseInt(managementId) }),
+    //       ...(companyId && { company_id: parseInt(companyId) }),
+    //     },
+    //   };
+
+
+    // }
+    console.log(managementId);
+      // Filtro adicional para usuarios vinculados directamente a la compañía (por `users_company`)
+      if (companyId) {
+        where.users_company = {
+          some: {
+            company_id: parseInt(companyId),
+          },
+        };
+      }
 
     const users = await prisma.users.findMany({
       skip: (page - 1) * pageSize,
@@ -164,6 +181,8 @@ export async function GET(req: NextRequest) {
     });
 
     const total = await prisma.users.count({ where });
+
+    console.log("Usuarios filtrados ->", users);
 
     return NextResponse.json({
       users,
