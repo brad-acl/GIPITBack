@@ -94,26 +94,38 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
  */
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
-  const { candidate_id, management_id, status, start_date, end_date } = await req.json();
-
+  const { name, rate } = await req.json(); // Asegurar que estamos recibiendo los valores correctos
+  console.log("Nombre y Salario", name, rate)
   try {
+    const candidateManagement = await prisma.candidate_management.findUnique({
+      where: { id: parseInt(id) },
+      select: { candidate_id: true } // Obtener el ID del candidato
+    });
 
+    if (!candidateManagement || !candidateManagement.candidate_id) {
+      return NextResponse.json({ error: 'Candidato no encontrado' }, { status: 404 });
+    }
 
+    // 🔹 Actualizar `candidates`
+    const updatedCandidate = await prisma.candidates.update({
+      where: { id: candidateManagement.candidate_id },
+      data: {
+        name, // Actualiza el nombre del candidato
+      }
+    });
 
+    // 🔹 Actualizar `candidate_management`
     const updatedCandidateManagement = await prisma.candidate_management.update({
       where: { id: parseInt(id) },
       data: {
-        candidate_id,
-        management_id,
-        status,
-        start_date,
-        end_date,
-        updated_at: new Date(), // Automatically update the timestamp
+        rate: parseFloat(rate), // Asegurar que es número
+        updated_at: new Date(),
       },
     });
 
-    return NextResponse.json(updatedCandidateManagement);
+    return NextResponse.json({ updatedCandidate, updatedCandidateManagement });
   } catch (error) {
+    console.error("Error al actualizar candidato:", error);
     return NextResponse.json({ error: `Error - ${error}` }, { status: 500 });
   }
 }

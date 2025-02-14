@@ -105,3 +105,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Error al crear el registro - ${error}` }, { status: 500 });
   }
 }
+
+export async function PUT(req: NextRequest, { params }: { params: { professionalId: string } }) {
+  try {
+    const { name, rate } = await req.json();
+
+    const updatedProfessional = await prisma.candidate_management.update({
+      where: { id: parseInt(params.professionalId) },
+      data: {
+        position: name,
+        rate: parseFloat(rate),
+      },
+    });
+
+    return NextResponse.json(updatedProfessional);
+  } catch (error) {
+    return NextResponse.json({ error: `Error actualizando profesional: ${error}` }, { status: 500 });
+  }
+}
